@@ -58,9 +58,10 @@ h2 {
 }
 
 .fridge-image {
-    width: 100px; /* 이미지 크기 조정 */
+    width: 120px; /* 이미지 크기 조정 */
+    max-width: 500px; /* 최대 너비 설정 */
     height: auto; /* 비율 유지 */
-    max-height: 200px; /* 최대 높이 설정 */
+    max-height: 250px; /* 최대 높이 설정 */
     cursor: pointer;
     transition: transform 0.3s ease-in-out;
     border: 2px solid #90a4ae;
@@ -223,6 +224,7 @@ h2 {
     border: 1px solid #cfd8dc;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
     flex-shrink: 0; /* 줄어들지 않도록 */
+    /* display: none; */ /* 초기에는 숨김 */
 }
 
 .food-selection h2 {
@@ -261,6 +263,14 @@ h2 {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
+.food-item-select.selected-modal-item {
+    background-color: #4CAF50; /* Green background for selected items */
+    color: white;
+    border-color: #4CAF50;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+}
+
 /* 애니메이션 키프레임 (기존 유지) */
 @keyframes pulseRed {
     0% { background-color: #ffebee; }
@@ -289,6 +299,7 @@ h2 {
     text-align: center;
     margin-bottom: 15px;
     font-size: 0.9em;
+    display: none; /* 초기에는 숨김 */
 }
 
 .language-selector select {
@@ -300,7 +311,121 @@ h2 {
 }
 
 
-/* Responsive adjustments */
+.food-category-select {
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 15px;
+    padding: 6px 12px;
+    font-size: 0.9em;
+    color: #1976d2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    display: inline-block; /* Or use flexbox for parent */
+    margin: 4px; /* Spacing between categories */
+}
+
+.food-category-select:hover {
+    background-color: #bbdefb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Style for selected category */
+.food-category-select.selected {
+    background-color: #2196f3;
+    color: white;
+    font-weight: bold;
+    border-color: #1976d2;
+}
+
+.add-selected-foods-btn {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px;
+    align-self: center; /* Center the button */
+    transition: background-color 0.3s ease;
+}
+
+.add-selected-foods-btn:hover {
+    background-color: #45a049;
+}
+
+/* Modal (popup) styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 10; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    backdrop-filter: blur(5px); /* Optional: blur background */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 10px;
+    width: 90%; /* Could be more specific, e.g., 80% */
+    max-width: 500px; /* Max width for larger screens */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 80vh; /* Limit height for scrollable content */
+    overflow-y: auto; /* Scroll content if it overflows */
+}
+
+/* Close button for modal */
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#modalCategoryTitle {
+    text-align: center;
+    color: #334e68;
+    margin-bottom: 5px;
+    font-size: 1.5em;
+    border-bottom: 1px solid #e0f2f7;
+    padding-bottom: 5px;
+}
+
+#modalFoodItems {
+    /* Inherits from .food-list for basic styling, but adjust if needed */
+    flex-grow: 1; /* Allow to take available space */
+    max-height: unset; /* Override fixed height from .food-list if necessary */
+    overflow-y: auto; /* Ensure scroll for items within modal */
+    border: none; /* Remove border from .food-list */
+    padding-top: 0;
+}
 @media (max-width: 768px) {
     body {
         padding: 5px;
@@ -317,8 +442,8 @@ h2 {
         height: 40vh; /* 화면의 40% 차지 */
     }
     .fridge-image {
-        width: 80px;
-        max-height: 150px;
+        width: 100px;
+        max-height: 180px;
     }
     .fridge-interior {
         width: 95%;
@@ -362,8 +487,8 @@ h2 {
         font-size: 1.1em;
     }
     .fridge-image {
-        width: 70px;
-        max-height: 120px;
+        width: 90px;
+        max-height: 150px;
     }
     .fridge-interior {
         min-height: 80px;

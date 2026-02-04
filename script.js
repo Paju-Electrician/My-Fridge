@@ -2,9 +2,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const fridgeImage = document.getElementById('fridgeImage');
     const fridgeInterior = document.getElementById('fridgeInterior');
     const fridgeItemsContainer = document.getElementById('fridgeItems');
-    const foodListContainer = document.getElementById('foodList');
+    const foodCategoriesContainer = document.getElementById('foodCategories'); // 카테고리 컨테이너 참조
+    const foodItemsByCategoryContainer = document.getElementById('foodItemsByCategory'); // 카테고리별 음식 아이템 컨테이너 참조
+    const foodSelection = document.querySelector('.food-selection'); // 음식 선택 섹션 참조 추가
     const clearAllItemsBtn = document.getElementById('clearAllItemsBtn');
     const langSelect = document.getElementById('langSelect'); // 언어 선택 드롭다운 참조
+
+    // Modal elements
+    const foodSelectionModal = document.getElementById('foodSelectionModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalCategoryTitle = document.getElementById('modalCategoryTitle');
+    const modalFoodItems = document.getElementById('modalFoodItems');
+    const addSelectedFoodsBtn = document.getElementById('addSelectedFoodsBtn');
 
     // 언어별 텍스트 데이터
     const translations = {
@@ -57,12 +66,79 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFridgeContents(); // 냉장고 내부 내용 다시 렌더링 (유통기한 정보에 언어 영향)
     }
 
-    // 음식별 유통기한 데이터 (단위: 일)
-    const foodExpiryData = {
-        "감자": 30, "고등어": 3, "김치": 180, "닭고기": 3, "달걀": 21, "딸기": 5, "두부": 7, "마늘": 60, "바나나": 7,
-        "배추": 10, "버섯": 7, "브로콜리": 5, "사과": 30, "상추": 7, "새우": 2, "소고기": 4, "시금치": 7, "양파": 90,
-        "오렌지": 20, "우유": 7, "요거트": 14, "자몽": 14, "치즈": 60, "콩나물": 3, "토마토": 10, "파": 7, "포도": 7,
-        "피망": 10, "햄": 5
+    // 냉장고 이미지/내부/음식 선택 섹션 가시성 업데이트 함수
+    function updateFridgeView() {
+        if (fridgeContents.length > 0) {
+            fridgeImage.style.display = 'none'; // 냉장고 이미지 숨기기
+            fridgeInterior.classList.add('open'); // 냉장고 내부 보이기 (애니메이션 포함)
+            langSelect.parentElement.style.display = 'flex'; // 언어 선택기 보이기
+        } else {
+            fridgeImage.style.display = 'block'; // 냉장고 이미지 보이기
+            fridgeInterior.classList.remove('open'); // 냉장고 내부 숨기기
+            langSelect.parentElement.style.display = 'none'; // 언어 선택기 숨기기
+        }
+    }
+
+    let currentModalCategory = ''; // 현재 모달에서 선택된 카테고리를 추적
+
+    // 음식 선택 모달 열기
+    function openFoodSelectionModal(categoryName) {
+        currentModalCategory = categoryName; // 현재 카테고리 저장
+        modalCategoryTitle.textContent = `${categoryName} 선택`;
+        modalFoodItems.innerHTML = ''; // 기존 아이템 비우기
+
+        const foodItems = foodCategoriesData[categoryName];
+        if (!foodItems) return;
+
+        const sortedFoodItems = Object.keys(foodItems).sort((a, b) => a.localeCompare(b, 'ko-KR'));
+
+        sortedFoodItems.forEach(foodName => {
+            const foodItemDiv = document.createElement('div');
+            foodItemDiv.classList.add('food-item-select');
+            foodItemDiv.textContent = foodName;
+            foodItemDiv.dataset.food = foodName;
+            foodItemDiv.dataset.category = categoryName; // 카테고리 정보도 저장
+            modalFoodItems.appendChild(foodItemDiv);
+        });
+
+        foodSelectionModal.style.display = 'flex'; // 모달 보이기
+    }
+
+    // 음식 선택 모달 닫기
+    function closeFoodSelectionModal() {
+        foodSelectionModal.style.display = 'none'; // 모달 숨기기
+        modalFoodItems.innerHTML = ''; // 모달 아이템 비우기
+        currentModalCategory = ''; // 선택된 카테고리 초기화
+    }
+
+    // 카테고리별 음식 데이터 (단위: 일)
+    const foodCategoriesData = {
+        "육류": {
+            "닭고기": 3, "소고기": 4, "돼지고기": 5, "오리고기": 6, "양고기": 4, "베이컨": 7, "소시지": 14, "햄": 5
+        },
+        "채소류": {
+            "감자": 30, "배추": 10, "버섯": 7, "브로콜리": 5, "상추": 7, "시금치": 7, "양파": 90, "토마토": 10,
+            "파": 7, "피망": 10, "콩나물": 3, "오이": 7, "당근": 21, "가지": 7, "호박": 14, "고구마": 30, "무": 14
+        },
+        "과일류": {
+            "딸기": 5, "바나나": 7, "사과": 30, "오렌지": 20, "자몽": 14, "포도": 7, "수박": 7, "멜론": 7,
+            "복숭아": 5, "체리": 5, "블루베리": 7, "키위": 14
+        },
+        "유제품": {
+            "우유": 7, "요거트": 14, "치즈": 60, "버터": 30, "생크림": 7
+        },
+        "해산물": {
+            "고등어": 3, "새우": 2, "오징어": 3, "명태": 4, "갈치": 3, "조개": 2, "굴": 5
+        },
+        "곡물/견과류": {
+            "쌀": 365, "보리": 365, "아몬드": 180, "호두": 180, "땅콩": 180, "빵": 5, "라면": 180
+        },
+        "반찬류": {
+            "김치": 180, "단무지": 30, "장아찌": 365, "어묵": 7, "맛살": 7
+        },
+        "기타": {
+            "달걀": 21, "두부": 7, "마늘": 60, "소스": 90, "잼": 60, "꿀": 365, "초콜릿": 180, "케첩": 365
+        }
     };
 
     let fridgeContents = loadFridgeContents(); // 로컬 스토리지에서 냉장고 내용 로드
@@ -78,31 +154,67 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('myFridgeContents', JSON.stringify(fridgeContents));
     }
 
-    // 냉장고 열기/닫기 토글
-    fridgeImage.addEventListener('click', () => {
-        fridgeInterior.classList.toggle('open');
-    });
 
-    // 음식 목록 렌더링 (가나다순 정렬)
-    function renderFoodSelection() {
-        foodListContainer.innerHTML = ''; // 기존 목록 비우기
-        const sortedFoodNames = Object.keys(foodExpiryData).sort((a, b) => a.localeCompare(b, 'ko-KR')); // 가나다순 정렬
 
-        sortedFoodNames.forEach(foodName => {
+    // 음식 카테고리 렌더링
+    function renderFoodCategories() {
+        foodCategoriesContainer.innerHTML = ''; // 기존 목록 비우기
+        const sortedCategories = Object.keys(foodCategoriesData).sort((a, b) => a.localeCompare(b, 'ko-KR'));
+
+        sortedCategories.forEach(categoryName => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.classList.add('food-category-select'); // New class for categories
+            categoryDiv.textContent = categoryName;
+            categoryDiv.dataset.category = categoryName;
+            foodCategoriesContainer.appendChild(categoryDiv);
+        });
+
+        // 카테고리 선택 이벤트 리스너
+        foodCategoriesContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('food-category-select')) {
+                // 이전에 선택된 카테고리 스타일 제거
+                document.querySelectorAll('.food-category-select').forEach(div => {
+                    div.classList.remove('selected');
+                });
+                // 새로 선택된 카테고리 스타일 적용
+                e.target.classList.add('selected');
+
+                const selectedCategory = e.target.dataset.category;
+                openFoodSelectionModal(selectedCategory); // 모달 열기
+            }
+        });
+
+        // 페이지 로드 시 첫 번째 카테고리를 기본으로 선택하여 렌더링
+        if (sortedCategories.length > 0) {
+            foodCategoriesContainer.querySelector(`[data-category="${sortedCategories[0]}"]`).classList.add('selected');
+            renderFoodItemsForCategory(sortedCategories[0]);
+        }
+    }
+
+    // 선택된 카테고리에 해당하는 음식 아이템 렌더링
+    function renderFoodItemsForCategory(categoryName) {
+        foodItemsByCategoryContainer.innerHTML = ''; // 기존 목록 비우기
+        const foodItems = foodCategoriesData[categoryName];
+        if (!foodItems) return;
+
+        const sortedFoodItems = Object.keys(foodItems).sort((a, b) => a.localeCompare(b, 'ko-KR'));
+
+        sortedFoodItems.forEach(foodName => {
             const foodItemDiv = document.createElement('div');
-            foodItemDiv.classList.add('food-item-select');
+            foodItemDiv.classList.add('food-item-select'); // Use existing class for styling
             foodItemDiv.textContent = foodName;
+            foodItemDiv.dataset.category = categoryName; // Store category for adding
             foodItemDiv.dataset.food = foodName;
-            foodListContainer.appendChild(foodItemDiv);
+            foodItemsByCategoryContainer.appendChild(foodItemDiv);
         });
     }
 
     // 음식 아이템을 냉장고에 추가
-    function addFoodToFridge(foodName) {
+    function addFoodToFridge(categoryName, foodName) {
         const today = new Date();
-        const expiryDays = foodExpiryData[foodName];
+        const expiryDays = foodCategoriesData[categoryName][foodName];
         if (expiryDays === undefined) {
-            console.error(`${translations[currentLang].unknownFood}: ${foodName}`); // 텍스트 변경
+            console.error(`${translations[currentLang].unknownFood}: ${foodName} in category ${categoryName}`);
             return;
         }
 
@@ -119,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fridgeContents.push(newItem);
         saveFridgeContents();
         renderFridgeContents(); // 냉장고 내용 다시 렌더링
+        updateFridgeView(); // 음식 추가 후 뷰 업데이트
     }
 
     // 냉장고 내부 음식 아이템 렌더링
@@ -194,15 +307,35 @@ document.addEventListener('DOMContentLoaded', () => {
             fridgeContents = []; // 배열 비우기
             saveFridgeContents();
             renderFridgeContents();
+            updateFridgeView(); // 모든 아이템 삭제 후 뷰 업데이트
         }
     }
 
     // 이벤트 리스너: 음식 선택 클릭 시 냉장고에 추가
-    foodListContainer.addEventListener('click', (e) => {
+    foodItemsByCategoryContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('food-item-select')) {
             const foodName = e.target.dataset.food;
-            addFoodToFridge(foodName);
+            const categoryName = e.target.dataset.category;
+            addFoodToFridge(categoryName, foodName);
         }
+    });
+
+    // 이벤트 리스너: 모달 내 음식 아이템 선택 (다중 선택)
+    modalFoodItems.addEventListener('click', (e) => {
+        if (e.target.classList.contains('food-item-select')) {
+            e.target.classList.toggle('selected-modal-item');
+        }
+    });
+
+    // 이벤트 리스너: 선택된 음식 냉장고에 추가 버튼
+    addSelectedFoodsBtn.addEventListener('click', () => {
+        const selectedItems = modalFoodItems.querySelectorAll('.food-item-select.selected-modal-item');
+        selectedItems.forEach(item => {
+            const foodName = item.dataset.food;
+            const categoryName = item.dataset.category;
+            addFoodToFridge(categoryName, foodName);
+        });
+        closeFoodSelectionModal(); // 모든 선택된 음식 추가 후 모달 닫기
     });
 
     clearAllItemsBtn.addEventListener('click', clearAllItems);
@@ -215,7 +348,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 초기 렌더링 및 텍스트 업데이트
-    renderFoodSelection(); // 추가 가능한 음식 목록 렌더링
+    renderFoodCategories(); // 추가 가능한 음식 카테고리 렌더링
     // renderFridgeContents(); // updateTexts에서 호출되므로 주석 처리
     updateTexts(); // 초기 로드 시 텍스트 업데이트
+    updateFridgeView(); // 냉장고 뷰 업데이트
+
+    // 모달 닫기 버튼 이벤트 리스너
+    closeModalBtn.addEventListener('click', closeFoodSelectionModal);
+
+    // 모달 외부 클릭 시 닫기
+    window.addEventListener('click', (event) => {
+        if (event.target === foodSelectionModal) {
+            closeFoodSelectionModal();
+        }
+    });
+
+    // Escape 키 눌렀을 때 닫기
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && foodSelectionModal.style.display === 'flex') {
+            closeFoodSelectionModal();
+        }
+    });
 });

@@ -30,17 +30,24 @@
 
         <div class="food-selection">
             <h2>음식 추가</h2>
-            <div class="food-list" id="foodList">
-                <!-- 추가 가능한 음식 아이템들이 여기에 동적으로 로드됩니다 -->
-                <div class="food-item" data-food="사과">사과</div>
-                <div class="food-item" data-food="우유">우유</div>
-                <div class="food-item" data-food="계란">계란</div>
-                <div class="food-item" data-food="요거트">요거트</div>
-                <div class="food-item" data-food="치즈">치즈</div>
-                <div class="food-item" data-food="햄">햄</div>
-                <div class="food-item" data-food="양파">양파</div>
-                <div class="food-item" data-food="토마토">토마토</div>
+            <div class="food-categories" id="foodCategories">
+                <!-- 음식 카테고리 버튼들이 여기에 동적으로 로드됩니다 -->
             </div>
+            <div class="food-list" id="foodItemsByCategory">
+                <!-- 선택된 카테고리에 해당하는 음식 아이템들이 여기에 동적으로 로드됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Food Selection Modal -->
+    <div id="foodSelectionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <h3 id="modalCategoryTitle"></h3> <!-- To show selected category name -->
+            <div id="modalFoodItems" class="food-list">
+                <!-- Food items for the selected category will be loaded here -->
+            </div>
+            <button id="addSelectedFoodsBtn" class="add-selected-foods-btn">냉장고에 추가</button>
         </div>
     </div>
 
