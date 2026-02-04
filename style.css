@@ -121,6 +121,25 @@ h2 {
     background-color: #d32f2f;
 }
 
+/* 요리 추천 버튼 */
+.suggest-recipe-btn {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: 5px;
+    align-self: flex-end; /* Align with clear button */
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+}
+
+.suggest-recipe-btn:hover {
+    background-color: #45a049;
+}
+
 .fridge-items {
     display: flex;
     flex-wrap: wrap;
@@ -466,6 +485,84 @@ h2 {
     overflow-y: auto; /* Ensure scroll for items within modal */
     border: none; /* Remove border from .food-list */
     padding-top: 0;
+}
+
+/* Recipe Results Styling */
+#recipeResults {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    min-height: 100px;
+}
+
+#recipeResults h4 {
+    color: #334e68;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+#recipeResults h5, #recipeResults h6 {
+    color: #557a95;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+    border-bottom: 1px dashed #cfd8dc;
+    padding-bottom: 3px;
+}
+
+.recipe-card, .youtube-card {
+    background-color: #ffffff;
+    border: 1px solid #e0f2f7;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.recipe-card h5, .youtube-card h6 {
+    font-size: 1em;
+    margin: 0 0 5px 0;
+    color: #333;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.recipe-card p {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.recipe-card a, .youtube-card a {
+    color: #1976d2;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.recipe-card a:hover, .youtube-card a:hover {
+    text-decoration: underline;
+}
+
+/* Style for search another recipe button */
+.search-recipe-btn {
+    background-color: #03a9f4; /* Blue */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px;
+    align-self: center; /* Center the button */
+    transition: background-color 0.3s ease;
+}
+
+.search-recipe-btn:hover {
+    background-color: #039be5;
 }
 @media (max-width: 768px) {
     body {

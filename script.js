@@ -15,13 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalFoodItems = document.getElementById('modalFoodItems');
     const addSelectedFoodsBtn = document.getElementById('addSelectedFoodsBtn');
 
+    // 레시피 모달 요소
+    const suggestRecipeBtn = document.getElementById('suggestRecipeBtn');
+    const recipeModal = document.getElementById('recipeModal');
+    const closeRecipeModalBtn = document.getElementById('closeRecipeModalBtn');
+    const recipeResults = document.getElementById('recipeResults');
+    const searchRecipeBtn = document.getElementById('searchRecipeBtn');
+
 
 
 
 
     // UI 텍스트 업데이트 함수
     function updateTexts() {
-        document.querySelector('h1').textContent = "나의 똑똑한 냉장고";
+        document.querySelector('h1').textContent = "냉장고를 부탁해";
         document.querySelector('.fridge-interior h2').textContent = "냉장고 내부";
         document.getElementById('clearAllItemsBtn').textContent = "모두 삭제";
         document.querySelector('.food-selection h2').textContent = "음식 추가";
@@ -77,6 +84,46 @@ document.addEventListener('DOMContentLoaded', () => {
         foodSelectionModal.style.display = 'none'; // 모달 숨기기
         modalFoodItems.innerHTML = ''; // 모달 아이템 비우기
         currentModalCategory = ''; // 선택된 카테고리 초기화
+    }
+
+    // 레시피 모달 열기
+    function openRecipeModal() {
+        recipeModal.style.display = 'flex';
+    }
+
+    // 레시피 모달 닫기
+    function closeRecipeModal() {
+        recipeModal.style.display = 'none';
+        recipeResults.innerHTML = '<p>냉장고에 있는 재료를 기반으로 레시피를 검색합니다...</p>'; // 초기 메시지로 재설정
+    }
+
+    // AI 기반 레시피 추천 가져오기
+    function getRecipeSuggestions() { // async 제거
+        if (fridgeContents.length === 0) {
+            recipeResults.innerHTML = '<p>냉장고에 음식이 없습니다. 요리할 재료를 먼저 추가해주세요!</p>';
+            return;
+        }
+
+        const ingredients = fridgeContents.map(item => `${item.name}`).join(', '); // 수량 제외, 이름만
+        const recipeQuery = `${ingredients} 요리 레시피`;
+        const youtubeQuery = `${ingredients} 요리 유튜브`;
+
+        const googleRecipeSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(recipeQuery)}`;
+        const youtubeRecipeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeQuery)}`;
+
+        let recipesHtml = `<h4>"${ingredients}" 재료를 위한 레시피 제안:</h4>`;
+        recipesHtml += `
+            <div class="recipe-card">
+                <p>다음 링크를 통해 레시피를 찾아보세요:</p>
+                <a href="${googleRecipeSearchUrl}" target="_blank">Google에서 레시피 검색</a>
+            </div>
+            <div class="youtube-card">
+                <p>다음 링크를 통해 요리 영상을 찾아보세요:</p>
+                <a href="${youtubeRecipeSearchUrl}" target="_blank">YouTube에서 요리 영상 검색</a>
+            </div>
+        `;
+        
+        recipeResults.innerHTML = recipesHtml;
     }
 
     // 카테고리별 음식 데이터 (단위: 일)
@@ -315,6 +362,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clearAllItemsBtn.addEventListener('click', clearAllItems);
 
+    suggestRecipeBtn.addEventListener('click', () => {
+        openRecipeModal();
+        getRecipeSuggestions();
+    });
+
+    closeRecipeModalBtn.addEventListener('click', closeRecipeModal);
+
+    searchRecipeBtn.addEventListener('click', () => {
+        getRecipeSuggestions(); // Find another recipe
+    });
+
 
 
     // 초기 렌더링 및 텍스트 업데이트
@@ -335,8 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Escape 키 눌렀을 때 닫기
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && foodSelectionModal.style.display === 'flex') {
-            closeFoodSelectionModal();
+        if (event.key === 'Escape') {
+            if (foodSelectionModal.style.display === 'flex') {
+                closeFoodSelectionModal();
+            } else if (recipeModal.style.display === 'flex') {
+                closeRecipeModal();
+            }
         }
     });
 });

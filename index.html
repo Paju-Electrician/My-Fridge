@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나의 냉장고 유통기한 관리</title>
+    <title>냉장고를 부탁해</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>나의 똑똑한 냉장고</h1>
+        <h1>냉장고를 부탁해</h1>
 
 
         <div class="fridge-container">
@@ -16,6 +16,7 @@
             <div class="fridge-interior" id="fridgeInterior">
                 <h2>냉장고 내부</h2>
                 <button id="clearAllItemsBtn" class="clear-all-btn">모두 삭제</button>
+                <button id="suggestRecipeBtn" class="suggest-recipe-btn">요리 추천 받기 (AI)</button>
                 <div class="fridge-items" id="fridgeItems">
                     <!-- 냉장고 속 음식 아이템들이 여기에 추가됩니다 -->
                 </div>
@@ -40,6 +41,19 @@
                 <!-- Food items for the selected category will be loaded here -->
             </div>
             <button id="addSelectedFoodsBtn" class="add-selected-foods-btn">냉장고에 추가</button>
+        </div>
+    </div>
+
+    <!-- Recipe Suggestion Modal -->
+    <div id="recipeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeRecipeModalBtn">&times;</span>
+            <h3>추천 요리 레시피</h3>
+            <div id="recipeResults">
+                <!-- Recipe suggestions will be loaded here -->
+                <p>냉장고에 있는 재료를 기반으로 레시피를 검색합니다...</p>
+            </div>
+            <button id="searchRecipeBtn" class="search-recipe-btn">다른 레시피 찾기</button>
         </div>
     </div>
 
