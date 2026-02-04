@@ -1,158 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>My Fridge — 냉장고 관리</title>
-	<style>
-		:root{--bg:#f7fafc;--card:#ffffff;--muted:#6b7280;--accent:#059669}
-		*{box-sizing:border-box;font-family:Inter,Segoe UI,Arial,sans-serif}
-		body{margin:0;background:var(--bg);color:#0f172a}
-		header{padding:20px 16px;background:linear-gradient(90deg,#ecfeff,#f0f9ff);display:flex;align-items:center;justify-content:space-between}
-		h1{margin:0;font-size:20px}
-		.container{max-width:960px;margin:20px auto;padding:16px}
-		.card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
-		form{display:flex;gap:8px;flex-wrap:wrap}
-		input,select{padding:8px;border-radius:8px;border:1px solid #e6edf3;background:#fff}
-		button{padding:9px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff}
-		.list{margin-top:12px;display:grid;grid-template-columns:1fr;gap:8px}
-		.item{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px;border-radius:8px;border:1px solid #eef2f7}
-		.meta{display:flex;gap:8px;align-items:center}
-		.badge{padding:6px 8px;border-radius:999px;font-size:12px}
-		.expired{background:#fee2e2;color:#991b1b}
-		.soon{background:#fffbeb;color:#92400e}
-		.muted{color:var(--muted);font-size:13px}
-		.controls button{margin-left:6px;background:#ef4444}
-		.small{font-size:13px;padding:6px 8px}
-		@media(min-width:720px){.list{grid-template-columns:1fr 1fr}}
-	</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>냉장고 유통기한 알림</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<header>
-		<h1>My Fridge</h1>
-		<div class="muted">간단한 로컬 저장 냉장고 관리</div>
-	</header>
+    <div class="container">
+        <h1>나의 냉장고</h1>
+        <div class="add-item">
+            <input type="text" id="itemName" placeholder="음식 이름" required>
+            <input type="date" id="expiryDate" required>
+            <button id="addItemBtn">추가</button>
+        </div>
+        <div class="filter-sort">
+            <label for="filterOption">필터:</label>
+            <select id="filterOption">
+                <option value="all">전체</option>
+                <option value="today">오늘 만료</option>
+                <option value="soon">곧 만료 (7일 이내)</option>
+                <option value="expired">만료됨</option>
+            </select>
+            <label for="sortOption">정렬:</label>
+            <select id="sortOption">
+                <option value="name">이름순</option>
+                <option value="expiryAsc">유통기한 (오름차순)</option>
+                <option value="expiryDesc">유통기한 (내림차순)</option>
+            </select>
+        </div>
+        <ul id="itemList">
+            <!-- 음식 아이템들이 여기에 추가됩니다 -->
+        </ul>
+    </div>
 
-	<main class="container">
-		<section class="card">
-			<form id="addForm">
-				<input id="name" placeholder="음식 이름 (예: 우유)" required />
-				<input id="quantity" type="number" min="1" value="1" style="width:100px" />
-				<input id="expiry" type="date" />
-				<select id="category">
-					<option value="others">기타</option>
-					<option value="dairy">유제품</option>
-					<option value="meat">육류</option>
-					<option value="veggies">채소/과일</option>
-				</select>
-				<button type="submit">추가</button>
-				<button id="clearAll" type="button" class="small" style="background:#6b7280">전체 삭제</button>
-			</form>
-
-			<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-				<div class="muted">필터:</div>
-				<button class="small" data-filter="all">전체</button>
-				<button class="small" data-filter="expiring">곧 만료</button>
-				<button class="small" data-filter="expired">만료됨</button>
-			</div>
-
-			<div id="list" class="list"></div>
-		</section>
-	</main>
-
-	<script>
-		// 간단한 로컬냉장고 앱 — localStorage에 저장
-		const LS_KEY = 'myFridgeItems_v1'
-		const addForm = document.getElementById('addForm')
-		const listEl = document.getElementById('list')
-		const clearAll = document.getElementById('clearAll')
-		let items = load()
-
-		function load(){
-			try{const raw = localStorage.getItem(LS_KEY); return raw?JSON.parse(raw):[] }catch(e){return[]}
-		}
-		function save(){localStorage.setItem(LS_KEY, JSON.stringify(items))}
-
-		function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-
-		function daysBetween(a,b){const msPerDay=24*60*60*1000; return Math.ceil((b-a)/msPerDay)}
-
-		function render(filter='all'){
-			listEl.innerHTML=''
-			if(items.length===0){listEl.innerHTML='<div class="muted">항목이 없습니다. 상단에서 추가하세요.</div>';return}
-			const today = new Date();
-			const filtered = items.filter(it=>{
-				if(filter==='all') return true
-				if(!it.expiry) return false
-				const diff = daysBetween(today, new Date(it.expiry))
-				if(filter==='expiring') return diff>=0 && diff<=3
-				if(filter==='expired') return new Date(it.expiry) < today
-				return true
-			})
-			filtered.forEach(it=>{
-				const el = document.createElement('div'); el.className='item'
-				const left = document.createElement('div'); left.className='meta'
-				const name = document.createElement('div'); name.innerHTML = `<strong>${escapeHtml(it.name)}</strong> <div class="muted">${it.category==='others'?'':it.category}</div>`
-				const qty = document.createElement('div'); qty.className='muted'; qty.textContent = `수량: ${it.quantity}`
-				left.appendChild(name); left.appendChild(qty)
-
-				const right = document.createElement('div'); right.style.display='flex'; right.style.alignItems='center'; right.style.gap='8px'
-				if(it.expiry){
-					const exp = new Date(it.expiry)
-					const diff = daysBetween(new Date(), exp)
-					const span = document.createElement('div');
-					span.className='badge ' + (exp < new Date() ? 'expired' : (diff<=3 ? 'soon' : ''))
-					span.textContent = it.expiry + (exp < new Date() ? ' (만료)' : diff<=3 ? ` (D-${diff})` : '')
-					right.appendChild(span)
-				}
-
-				const controls = document.createElement('div'); controls.className='controls'
-				const eatBtn = document.createElement('button'); eatBtn.textContent='먹음'; eatBtn.className='small'; eatBtn.onclick = ()=>{items = items.filter(x=>x.id!==it.id); save(); render(currentFilter)}
-				const delBtn = document.createElement('button'); delBtn.textContent='삭제'; delBtn.className='small'; delBtn.style.background='#ef4444'; delBtn.onclick = ()=>{if(confirm('정말 삭제하시겠습니까?')){items = items.filter(x=>x.id!==it.id); save(); render(currentFilter)}}
-				const editBtn = document.createElement('button'); editBtn.textContent='편집'; editBtn.className='small'; editBtn.style.background='#2563eb'; editBtn.onclick = ()=>{openEditPrompt(it)}
-				controls.appendChild(editBtn); controls.appendChild(eatBtn); controls.appendChild(delBtn)
-				right.appendChild(controls)
-
-				el.appendChild(left); el.appendChild(right)
-				listEl.appendChild(el)
-			})
-		}
-
-		function openEditPrompt(item){
-			const name = prompt('이름', item.name)
-			if(name===null) return
-			const qty = prompt('수량', item.quantity)
-			if(qty===null) return
-			const expiry = prompt('유통기한 (YYYY-MM-DD) 또는 빈칸', item.expiry||'')
-			if(expiry===null) return
-			item.name = name.trim() || item.name
-			item.quantity = Math.max(1, parseInt(qty)||1)
-			item.expiry = expiry.trim() || null
-			save(); render(currentFilter)
-		}
-
-		function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
-
-		addForm.addEventListener('submit', e=>{
-			e.preventDefault()
-			const name = document.getElementById('name').value.trim()
-			if(!name) return alert('이름을 입력하세요')
-			const quantity = Math.max(1, parseInt(document.getElementById('quantity').value)||1)
-			const expiry = document.getElementById('expiry').value || null
-			const category = document.getElementById('category').value
-			items.unshift({id: uid(), name, quantity, expiry, category, created: new Date().toISOString()})
-			save(); addForm.reset(); render(currentFilter)
-		})
-
-		clearAll.addEventListener('click', ()=>{if(confirm('모든 항목을 삭제합니까?')){items=[];save();render(currentFilter)}})
-
-		// 필터 버튼
-		let currentFilter = 'all'
-		document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click', ()=>{currentFilter=btn.dataset.filter;render(currentFilter)}))
-
-		// 자동 만료 갱신: 페이지가 열릴 때와 매일 갱신
-		render()
-		setInterval(()=>{render(currentFilter)}, 60*1000)
-	</script>
+    <script src="script.js"></script>
 </body>
 </html>

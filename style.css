@@ -1,0 +1,145 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.add-item, .filter-sort {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.add-item input[type="text"],
+.add-item input[type="date"],
+.filter-sort select {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.add-item button {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.add-item button:hover {
+    background-color: #218838;
+}
+
+.filter-sort label {
+    font-size: 16px;
+    color: #555;
+    flex-shrink: 0;
+}
+
+#itemList {
+    list-style: none;
+    padding: 0;
+}
+
+#itemList li {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#itemList li.expired {
+    background-color: #fdd;
+    border-color: #fbc;
+}
+
+#itemList li.expiring-soon {
+    background-color: #ffe;
+    border-color: #eed;
+}
+
+#itemList li span {
+    flex-grow: 1;
+    margin-right: 10px;
+    color: #333;
+}
+
+#itemList li .expiry-info {
+    font-size: 0.9em;
+    color: #666;
+    margin-left: 10px;
+    white-space: nowrap; /* 유통기한 정보가 줄바꿈되지 않도록 */
+}
+
+#itemList li button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 5px; /* 버튼 사이 간격 */
+    flex-shrink: 0;
+}
+
+#itemList li button:hover {
+    background-color: #c82333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .add-item, .filter-sort {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .add-item input, .add-item button, .filter-sort select {
+        width: 100%;
+    }
+    #itemList li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #itemList li .expiry-info {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+    #itemList li button {
+        margin-top: 10px;
+        margin-left: 0;
+        width: 100%;
+    }
+}
