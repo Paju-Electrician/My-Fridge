@@ -3,35 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>냉장고 유통기한 알림</title>
+    <title>나의 냉장고 유통기한 관리</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>나의 냉장고</h1>
-        <div class="add-item">
-            <input type="text" id="itemName" placeholder="음식 이름" required>
-            <input type="date" id="expiryDate" required>
-            <button id="addItemBtn">추가</button>
+        <h1>나의 똑똑한 냉장고</h1>
+
+        <div class="fridge-container">
+            <img src="https://via.placeholder.com/150x300.png?text=Refrigerator" alt="Refrigerator" class="fridge-image" id="fridgeImage">
+            <div class="fridge-interior" id="fridgeInterior">
+                <h2>냉장고 내부</h2>
+                <div class="fridge-items" id="fridgeItems">
+                    <!-- 냉장고 속 음식 아이템들이 여기에 추가됩니다 -->
+                </div>
+            </div>
         </div>
-        <div class="filter-sort">
-            <label for="filterOption">필터:</label>
-            <select id="filterOption">
-                <option value="all">전체</option>
-                <option value="today">오늘 만료</option>
-                <option value="soon">곧 만료 (7일 이내)</option>
-                <option value="expired">만료됨</option>
-            </select>
-            <label for="sortOption">정렬:</label>
-            <select id="sortOption">
-                <option value="name">이름순</option>
-                <option value="expiryAsc">유통기한 (오름차순)</option>
-                <option value="expiryDesc">유통기한 (내림차순)</option>
-            </select>
+
+        <div class="food-selection">
+            <h2>음식 추가</h2>
+            <div class="food-list" id="foodList">
+                <!-- 추가 가능한 음식 아이템들이 여기에 동적으로 로드됩니다 -->
+                <div class="food-item" data-food="사과">사과</div>
+                <div class="food-item" data-food="우유">우유</div>
+                <div class="food-item" data-food="계란">계란</div>
+                <div class="food-item" data-food="요거트">요거트</div>
+                <div class="food-item" data-food="치즈">치즈</div>
+                <div class="food-item" data-food="햄">햄</div>
+                <div class="food-item" data-food="양파">양파</div>
+                <div class="food-item" data-food="토마토">토마토</div>
+            </div>
         </div>
-        <ul id="itemList">
-            <!-- 음식 아이템들이 여기에 추가됩니다 -->
-        </ul>
     </div>
 
     <script src="script.js"></script>
