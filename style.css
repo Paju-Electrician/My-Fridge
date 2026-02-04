@@ -1,104 +1,138 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #e0f2f7; /* 밝은 파스텔톤 블루 */
+    background-color: #e0f2f7;
     margin: 0;
-    padding: 20px;
+    padding: 10px; /* 전체 패딩 줄임 */
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
+    align-items: center; /* 전체 콘텐츠 중앙 정렬 */
+    min-height: 100vh; /* 뷰포트 높이 꽉 채우기 */
     box-sizing: border-box;
+    overflow: hidden; /* 스크롤바 숨김 */
 }
 
 .container {
     background-color: #ffffff;
-    padding: 30px;
+    padding: 20px; /* 패딩 줄임 */
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 800px;
+    max-width: 700px; /* 최대 너비 조정 */
+    height: calc(100vh - 20px); /* 뷰포트 높이에서 패딩 제외 */
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 15px; /* 간격 조정 */
+    box-sizing: border-box;
 }
 
 h1 {
     text-align: center;
-    color: #334e68; /* 어두운 블루 계열 */
-    margin-bottom: 20px;
-    font-size: 2.5em;
+    color: #334e68;
+    margin-bottom: 10px; /* 마진 조정 */
+    font-size: 2em; /* 폰트 사이즈 조정 */
     font-weight: 700;
 }
 
 h2 {
     color: #557a95;
-    font-size: 1.5em;
+    font-size: 1.2em; /* 폰트 사이즈 조정 */
     margin-top: 0;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #e0f2f7;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e0f2f7; /* 보더 두께 줄임 */
     padding-bottom: 5px;
 }
 
 /* 냉장고 컨테이너 */
 .fridge-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    position: relative;
-    padding: 20px;
+    flex-direction: row; /* 이미지를 옆으로 배치 */
+    align-items: flex-start; /* 상단 정렬 */
+    gap: 10px; /* 간격 조정 */
+    padding: 10px; /* 패딩 줄임 */
     border: 1px solid #cfd8dc;
     border-radius: 10px;
     background-color: #f5f8fa;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+    flex-grow: 1; /* 남은 공간 차지 */
+    overflow: hidden; /* 내부 스크롤 방지 */
 }
 
 .fridge-image {
-    width: 150px; /* 임시 이미지 크기 */
-    height: 300px;
+    width: 100px; /* 이미지 크기 조정 */
+    height: auto; /* 비율 유지 */
+    max-height: 200px; /* 최대 높이 설정 */
     cursor: pointer;
     transition: transform 0.3s ease-in-out;
     border: 2px solid #90a4ae;
     border-radius: 5px;
+    flex-shrink: 0; /* 줄어들지 않도록 */
 }
 
 .fridge-image:hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
 }
 
 /* 냉장고 내부 */
 .fridge-interior {
-    background-color: #e3f2fd; /* 밝은 하늘색 */
+    background-color: #e3f2fd;
     border: 2px solid #90a4ae;
     border-radius: 8px;
-    width: 90%;
-    min-height: 250px;
-    padding: 15px;
+    width: calc(100% - 110px); /* 이미지 너비만큼 제외 */
+    height: 100%; /* 부모 컨테이너 높이 꽉 채우기 */
+    padding: 10px;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-    display: none; /* 초기에는 숨김 */
+    display: none;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px; /* 간격 조정 */
     position: relative;
     transition: all 0.5s ease-in-out;
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateX(20px); /* 옆으로 이동하며 나타나도록 */
+    box-sizing: border-box;
 }
 
 .fridge-interior.open {
-    display: flex; /* 열리면 보이게 */
+    display: flex;
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
+}
+
+.fridge-interior h2 {
+    margin-bottom: 5px; /* 내부 h2 마진 조정 */
+    font-size: 1.1em;
+    border-bottom: none;
+}
+
+/* 전체 삭제 버튼 */
+.clear-all-btn {
+    background-color: #f44336;
+    color: white;
+    padding: 5px 10px; /* 패딩 줄임 */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em; /* 폰트 사이즈 조정 */
+    margin-top: 5px;
+    align-self: flex-end;
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+}
+
+.clear-all-btn:hover {
+    background-color: #d32f2f;
 }
 
 .fridge-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    min-height: 150px; /* 내부 공간 확보 */
+    gap: 5px; /* 간격 조정 */
+    min-height: 50px;
     border: 1px dashed #a7d9f7;
-    padding: 10px;
+    padding: 5px;
     border-radius: 5px;
-    align-content: flex-start; /* 아이템들을 위에서부터 채움 */
+    align-content: flex-start;
+    flex-grow: 1; /* 남은 공간 차지 */
+    overflow-y: auto; /* 내용이 많아지면 스크롤 */
 }
 
 /* 냉장고 안의 음식 아이템 */
@@ -106,26 +140,21 @@ h2 {
     background-color: #ffffff;
     border: 1px solid #b0bec5;
     border-radius: 5px;
-    padding: 8px 12px;
-    font-size: 0.9em;
+    padding: 5px 8px; /* 패딩 줄임 */
+    font-size: 0.8em; /* 폰트 사이즈 조정 */
     color: #455a64;
-    position: relative; /* 삭제 버튼 위치 조절을 위해 */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
     transition: all 0.3s ease;
-    cursor: grab; /* 드래그 가능함을 나타냄 */
-}
-
-.fridge-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    cursor: grab;
 }
 
 .fridge-item .expiry-info {
-    font-size: 0.75em;
+    font-size: 0.7em; /* 폰트 사이즈 조정 */
     color: #78909c;
     white-space: nowrap;
 }
@@ -136,10 +165,24 @@ h2 {
     animation: pulseRed 1.5s infinite alternate;
 }
 
-.fridge-item.expiring-soon {
+/* 0-1일 남음 (빨간색 경고) */
+.fridge-item.expiring-soon-red {
+    background-color: #ffebee; /* 만료와 유사한 붉은색 계열 */
+    border-color: #ef9a9a;
+    animation: pulseRed 1.5s infinite alternate; /* 강한 경고 */
+}
+
+/* 2-3일 남음 (노란색 경고) */
+.fridge-item.expiring-soon-yellow {
     background-color: #fffde7; /* 옅은 노란색 */
     border-color: #ffcc80;
-    animation: pulseYellow 1.5s infinite alternate;
+    animation: pulseYellow 1.5s infinite alternate; /* 중간 경고 */
+}
+
+/* 4-7일 남음 (기존 노란색 경고) */
+.fridge-item.expiring-soon {
+    background-color: #fff8e1; /* 더 옅은 노란색 */
+    border-color: #ffe0b2;
 }
 
 /* 삭제 버튼 */
@@ -175,30 +218,41 @@ h2 {
 /* 음식 추가 선택 섹션 */
 .food-selection {
     background-color: #f0f4f8;
-    padding: 20px;
+    padding: 15px; /* 패딩 줄임 */
     border-radius: 10px;
     border: 1px solid #cfd8dc;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0; /* 줄어들지 않도록 */
+}
+
+.food-selection h2 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
 }
 
 .food-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px; /* 간격 조정 */
     justify-content: center;
-    padding-top: 10px;
+    padding-top: 5px;
+    max-height: 150px; /* 최대 높이 설정 */
+    overflow-y: auto; /* 스크롤바 추가 */
+    border: 1px dashed #cfd8dc;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 .food-item-select {
-    background-color: #e3f2fd; /* 밝은 블루 */
+    background-color: #e3f2fd;
     border: 1px solid #90caf9;
-    border-radius: 20px;
-    padding: 8px 15px;
-    font-size: 0.95em;
+    border-radius: 15px; /* 둥근 정도 조정 */
+    padding: 6px 12px; /* 패딩 조정 */
+    font-size: 0.9em;
     color: #1976d2;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .food-item-select:hover {
@@ -207,7 +261,7 @@ h2 {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* 애니메이션 키프레임 */
+/* 애니메이션 키프레임 (기존 유지) */
 @keyframes pulseRed {
     0% { background-color: #ffebee; }
     50% { background-color: #ef9a9a; }
@@ -230,23 +284,96 @@ h2 {
     animation: fadeOutZoom 0.4s forwards;
 }
 
+/* 언어 선택 */
+.language-selector {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+
+.language-selector select {
+    padding: 5px 8px;
+    border-radius: 5px;
+    border: 1px solid #cfd8dc;
+    background-color: #f5f8fa;
+    cursor: pointer;
+}
+
+
 /* Responsive adjustments */
-@media (max-width: 600px) {
-    .container {
-        padding: 20px;
+@media (max-width: 768px) {
+    body {
+        padding: 5px;
     }
-    h1 {
-        font-size: 2em;
+    .container {
+        padding: 15px;
+        height: calc(100vh - 10px); /* 패딩 조정 */
+        max-width: 95%;
+    }
+    .fridge-container {
+        flex-direction: column; /* 세로로 쌓기 */
+        align-items: center;
+        flex-grow: unset; /* 모바일에서 고정 높이 */
+        height: 40vh; /* 화면의 40% 차지 */
     }
     .fridge-image {
-        width: 120px;
-        height: 240px;
+        width: 80px;
+        max-height: 150px;
     }
     .fridge-interior {
-        min-height: 200px;
+        width: 95%;
+        height: auto; /* 내부 높이 자동 */
+        min-height: 100px; /* 최소 높이 */
+        transform: translateY(20px); /* 애니메이션 방향 변경 */
+    }
+    .fridge-interior.open {
+        transform: translateY(0);
+    }
+    h1 {
+        font-size: 1.8em;
+        margin-bottom: 5px;
+    }
+    h2 {
+        font-size: 1.3em;
+        margin-bottom: 5px;
+    }
+    .food-selection {
+        flex-grow: 1; /* 남은 공간 차지 */
+        padding: 10px;
+    }
+    .food-list {
+        max-height: 100%; /* 남은 공간을 채우도록 */
+    }
+    .fridge-item {
+        font-size: 0.75em;
+        padding: 4px 6px;
     }
     .food-item-select {
-        padding: 6px 10px;
-        font-size: 0.9em;
+        font-size: 0.8em;
+        padding: 5px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5em;
+    }
+    h2 {
+        font-size: 1.1em;
+    }
+    .fridge-image {
+        width: 70px;
+        max-height: 120px;
+    }
+    .fridge-interior {
+        min-height: 80px;
+    }
+    .food-item-select {
+        font-size: 0.75em;
+        padding: 4px 8px;
+    }
+    .clear-all-btn {
+        font-size: 0.7em;
+        padding: 4px 8px;
     }
 }

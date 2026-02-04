@@ -9,11 +9,19 @@
 <body>
     <div class="container">
         <h1>나의 똑똑한 냉장고</h1>
+        <div class="language-selector">
+            <label for="langSelect">언어:</label>
+            <select id="langSelect">
+                <option value="ko">한국어</option>
+                <option value="en">English</option>
+            </select>
+        </div>
 
         <div class="fridge-container">
-            <img src="https://cdn-icons-png.flaticon.com/512/1179/1179124.png" alt="Refrigerator" class="fridge-image" id="fridgeImage">
+            <img src="fridge.png" alt="Refrigerator" class="fridge-image" id="fridgeImage">
             <div class="fridge-interior" id="fridgeInterior">
                 <h2>냉장고 내부</h2>
+                <button id="clearAllItemsBtn" class="clear-all-btn">모두 삭제</button>
                 <div class="fridge-items" id="fridgeItems">
                     <!-- 냉장고 속 음식 아이템들이 여기에 추가됩니다 -->
                 </div>
