@@ -3,10 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const fridgeInterior = document.getElementById('fridgeInterior');
     const fridgeItemsContainer = document.getElementById('fridgeItems');
     const foodCategoriesContainer = document.getElementById('foodCategories'); // 카테고리 컨테이너 참조
-    const foodItemsByCategoryContainer = document.getElementById('foodItemsByCategory'); // 카테고리별 음식 아이템 컨테이너 참조
+
     const foodSelection = document.querySelector('.food-selection'); // 음식 선택 섹션 참조 추가
     const clearAllItemsBtn = document.getElementById('clearAllItemsBtn');
-    const langSelect = document.getElementById('langSelect'); // 언어 선택 드롭다운 참조
+
 
     // Modal elements
     const foodSelectionModal = document.getElementById('foodSelectionModal');
@@ -15,55 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalFoodItems = document.getElementById('modalFoodItems');
     const addSelectedFoodsBtn = document.getElementById('addSelectedFoodsBtn');
 
-    // 언어별 텍스트 데이터
-    const translations = {
-        ko: {
-            appName: "나의 똑똑한 냉장고",
-            fridgeInteriorTitle: "냉장고 내부",
-            clearAll: "모두 삭제",
-            addFoodSection: "음식 추가",
-            expirySoon: "일 남음",
-            expiryToday: "오늘 만료",
-            expiryTomorrow: "내일 만료",
-            expired: "만료됨",
-            daysAgo: "일 지남",
-            confirmClear: "냉장고 안의 모든 음식을 삭제하시겠습니까?",
-            alertAllFields: "음식 이름과 유통기한을 모두 입력해주세요.", // 이 메시지는 현재 사용 안됨
-            language: "언어:",
-            unknownFood: "알 수 없는 음식"
-        },
-        en: {
-            appName: "My Smart Fridge",
-            fridgeInteriorTitle: "Fridge Interior",
-            clearAll: "Clear All",
-            addFoodSection: "Add Food",
-            expirySoon: "days left",
-            expiryToday: "Expires today",
-            expiryTomorrow: "Expires tomorrow",
-            expired: "Expired",
-            daysAgo: "days ago",
-            confirmClear: "Are you sure you want to delete all items from the fridge?",
-            alertAllFields: "Please enter both food name and expiry date.", // 이 메시지는 현재 사용 안됨
-            language: "Language:",
-            unknownFood: "Unknown Food"
-        }
-    };
 
-    // 현재 언어 설정 로드 (기본값: 한국어)
-    let currentLang = localStorage.getItem('appLang') || 'ko';
-    langSelect.value = currentLang;
+
+
 
     // UI 텍스트 업데이트 함수
     function updateTexts() {
-        const lang = currentLang;
-        document.querySelector('h1').textContent = translations[lang].appName;
-        document.querySelector('.fridge-interior h2').textContent = translations[lang].fridgeInteriorTitle;
-        document.getElementById('clearAllItemsBtn').textContent = translations[lang].clearAll;
-        document.querySelector('.food-selection h2').textContent = translations[lang].addFoodSection;
-        document.querySelector('.language-selector label').textContent = translations[lang].language;
-
-        // 음식 목록은 언어에 영향을 받지 않으므로 renderFoodSelection은 그대로
-        renderFridgeContents(); // 냉장고 내부 내용 다시 렌더링 (유통기한 정보에 언어 영향)
+        document.querySelector('h1').textContent = "나의 똑똑한 냉장고";
+        document.querySelector('.fridge-interior h2').textContent = "냉장고 내부";
+        document.getElementById('clearAllItemsBtn').textContent = "모두 삭제";
+        document.querySelector('.food-selection h2').textContent = "음식 추가";
+        renderFridgeContents();
     }
 
     // 냉장고 이미지/내부/음식 선택 섹션 가시성 업데이트 함수
@@ -71,11 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fridgeContents.length > 0) {
             fridgeImage.style.display = 'none'; // 냉장고 이미지 숨기기
             fridgeInterior.classList.add('open'); // 냉장고 내부 보이기 (애니메이션 포함)
-            langSelect.parentElement.style.display = 'flex'; // 언어 선택기 보이기
         } else {
             fridgeImage.style.display = 'block'; // 냉장고 이미지 보이기
             fridgeInterior.classList.remove('open'); // 냉장고 내부 숨기기
-            langSelect.parentElement.style.display = 'none'; // 언어 선택기 숨기기
         }
     }
 
@@ -95,9 +55,17 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedFoodItems.forEach(foodName => {
             const foodItemDiv = document.createElement('div');
             foodItemDiv.classList.add('food-item-select');
-            foodItemDiv.textContent = foodName;
             foodItemDiv.dataset.food = foodName;
             foodItemDiv.dataset.category = categoryName; // 카테고리 정보도 저장
+
+            foodItemDiv.innerHTML = `
+                <span>${foodName}</span>
+                <div class="quantity-control">
+                    <button class="quantity-btn minus-btn" data-action="minus">-</button>
+                    <input type="number" class="quantity-input" value="1" min="1" data-food-name="${foodName}">
+                    <button class="quantity-btn plus-btn" data-action="plus">+</button>
+                </div>
+            `;
             modalFoodItems.appendChild(foodItemDiv);
         });
 
@@ -187,48 +155,39 @@ document.addEventListener('DOMContentLoaded', () => {
         // 페이지 로드 시 첫 번째 카테고리를 기본으로 선택하여 렌더링
         if (sortedCategories.length > 0) {
             foodCategoriesContainer.querySelector(`[data-category="${sortedCategories[0]}"]`).classList.add('selected');
-            renderFoodItemsForCategory(sortedCategories[0]);
+            // renderFoodItemsForCategory(sortedCategories[0]); // 모달로 대체됨
         }
     }
 
-    // 선택된 카테고리에 해당하는 음식 아이템 렌더링
-    function renderFoodItemsForCategory(categoryName) {
-        foodItemsByCategoryContainer.innerHTML = ''; // 기존 목록 비우기
-        const foodItems = foodCategoriesData[categoryName];
-        if (!foodItems) return;
 
-        const sortedFoodItems = Object.keys(foodItems).sort((a, b) => a.localeCompare(b, 'ko-KR'));
-
-        sortedFoodItems.forEach(foodName => {
-            const foodItemDiv = document.createElement('div');
-            foodItemDiv.classList.add('food-item-select'); // Use existing class for styling
-            foodItemDiv.textContent = foodName;
-            foodItemDiv.dataset.category = categoryName; // Store category for adding
-            foodItemDiv.dataset.food = foodName;
-            foodItemsByCategoryContainer.appendChild(foodItemDiv);
-        });
-    }
 
     // 음식 아이템을 냉장고에 추가
-    function addFoodToFridge(categoryName, foodName) {
+    function addFoodToFridge(categoryName, foodName, quantity = 1) { // quantity 매개변수 추가, 기본값 1
         const today = new Date();
         const expiryDays = foodCategoriesData[categoryName][foodName];
         if (expiryDays === undefined) {
-            console.error(`${translations[currentLang].unknownFood}: ${foodName} in category ${categoryName}`);
+            console.error(`알 수 없는 음식: ${foodName} in category ${categoryName}`);
             return;
         }
 
-        const expiryDate = new Date(today);
-        expiryDate.setDate(today.getDate() + expiryDays);
+        // 중복 확인 및 수량 업데이트
+        const existingItem = fridgeContents.find(item => item.name === foodName); // 이름으로 중복 확인
+        if (existingItem) {
+            existingItem.quantity += quantity; // 기존 항목의 수량 업데이트
+        } else {
+            const expiryDate = new Date(today);
+            expiryDate.setDate(today.getDate() + expiryDays);
 
-        const newItem = {
-            id: Date.now(),
-            name: foodName,
-            expiry: expiryDate.toISOString().split('T')[0], // YYYY-MM-DD 형식
-            addedDate: today.toISOString().split('T')[0]
-        };
+            const newItem = {
+                id: Date.now(),
+                name: foodName,
+                quantity: quantity, // 전달받은 수량 사용
+                expiry: expiryDate.toISOString().split('T')[0], // YYYY-MM-DD 형식
+                addedDate: today.toISOString().split('T')[0]
+            };
+            fridgeContents.push(newItem);
+        }
 
-        fridgeContents.push(newItem);
         saveFridgeContents();
         renderFridgeContents(); // 냉장고 내용 다시 렌더링
         updateFridgeView(); // 음식 추가 후 뷰 업데이트
@@ -253,28 +212,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let expiryInfo = '';
             if (daysLeft < 0) {
-                expiryInfo = `${translations[currentLang].expired} (${Math.abs(daysLeft)}${translations[currentLang].daysAgo})`;
+                expiryInfo = `만료됨 (${Math.abs(daysLeft)}일 지남)`;
                 foodItemDiv.classList.add('expired');
             } else if (daysLeft === 0) {
-                expiryInfo = translations[currentLang].expiryToday;
+                expiryInfo = "오늘 만료";
                 foodItemDiv.classList.add('expiring-soon-red');
             } else if (daysLeft === 1) {
-                expiryInfo = translations[currentLang].expiryTomorrow;
+                expiryInfo = "내일 만료";
                 foodItemDiv.classList.add('expiring-soon-red');
             } else if (daysLeft > 1 && daysLeft <= 3) {
-                expiryInfo = `${daysLeft}${translations[currentLang].expirySoon}`;
+                expiryInfo = `${daysLeft}일 남음`;
                 foodItemDiv.classList.add('expiring-soon-yellow');
             } else if (daysLeft > 3 && daysLeft <= 7) {
-                expiryInfo = `${daysLeft}${translations[currentLang].expirySoon}`;
+                expiryInfo = `${daysLeft}일 남음`;
                 foodItemDiv.classList.add('expiring-soon');
             } else {
-                expiryInfo = `${item.expiry} (${daysLeft}${translations[currentLang].expirySoon})`;
+                expiryInfo = `${item.expiry} (${daysLeft}일 남음)`;
             }
 
             foodItemDiv.innerHTML = `
-                <span>${item.name}</span>
+                <span>${item.name} (x${item.quantity})</span>
                 <span class="expiry-info">${expiryInfo}</span>
-                <button class="delete-btn" aria-label="${translations[currentLang].clearAll}">X</button>
+                <button class="delete-btn" aria-label="모두 삭제">X</button>
             `;
             fridgeItemsContainer.appendChild(foodItemDiv);
         });
@@ -303,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 전체 아이템 삭제 함수
     function clearAllItems() {
-        if (confirm(translations[currentLang].confirmClear)) {
+        if (confirm("냉장고 안의 모든 음식을 삭제하시겠습니까?")) {
             fridgeContents = []; // 배열 비우기
             saveFridgeContents();
             renderFridgeContents();
@@ -311,19 +270,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 이벤트 리스너: 음식 선택 클릭 시 냉장고에 추가
-    foodItemsByCategoryContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('food-item-select')) {
-            const foodName = e.target.dataset.food;
-            const categoryName = e.target.dataset.category;
-            addFoodToFridge(categoryName, foodName);
+
+
+    // 이벤트 리스너: 모달 내 수량 조절 버튼
+    modalFoodItems.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.classList.contains('quantity-btn')) {
+            const quantityInput = target.parentNode.querySelector('.quantity-input');
+            let quantity = parseInt(quantityInput.value);
+
+            if (target.dataset.action === 'minus') {
+                quantity = Math.max(1, quantity - 1); // 최소 수량은 1
+            } else if (target.dataset.action === 'plus') {
+                quantity += 1;
+            }
+            quantityInput.value = quantity;
         }
     });
 
     // 이벤트 리스너: 모달 내 음식 아이템 선택 (다중 선택)
     modalFoodItems.addEventListener('click', (e) => {
-        if (e.target.classList.contains('food-item-select')) {
-            e.target.classList.toggle('selected-modal-item');
+        // 클릭된 대상 또는 그 부모가 수량 컨트롤 요소인 경우 선택을 토글하지 않습니다.
+        if (e.target.classList.contains('quantity-btn') || e.target.closest('.quantity-control')) {
+            return; // 수량 컨트롤 내 클릭 무시
+        }
+        
+        const foodItem = e.target.closest('.food-item-select');
+        if (foodItem) {
+            foodItem.classList.toggle('selected-modal-item');
         }
     });
 
@@ -333,19 +307,15 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedItems.forEach(item => {
             const foodName = item.dataset.food;
             const categoryName = item.dataset.category;
-            addFoodToFridge(categoryName, foodName);
+            const quantity = parseInt(item.querySelector('.quantity-input').value); // 수량 읽기
+            addFoodToFridge(categoryName, foodName, quantity); // 수량 전달
         });
         closeFoodSelectionModal(); // 모든 선택된 음식 추가 후 모달 닫기
     });
 
     clearAllItemsBtn.addEventListener('click', clearAllItems);
 
-    // 언어 선택 이벤트 리스너
-    langSelect.addEventListener('change', (e) => {
-        currentLang = e.target.value;
-        localStorage.setItem('appLang', currentLang);
-        updateTexts(); // 언어 변경 시 UI 텍스트 업데이트
-    });
+
 
     // 초기 렌더링 및 텍스트 업데이트
     renderFoodCategories(); // 추가 가능한 음식 카테고리 렌더링
