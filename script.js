@@ -6,19 +6,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 음식별 유통기한 데이터 (단위: 일)
     const foodExpiryData = {
-        "사과": 30,
-        "우유": 7,
-        "계란": 21,
-        "요거트": 14,
-        "치즈": 60,
-        "햄": 5,
-        "양파": 90,
-        "토마토": 10,
+        "감자": 30,
+        "고등어": 3,
+        "김치": 180,
+        "닭고기": 3,
+        "달걀": 21,
+        "딸기": 5,
+        "두부": 7,
+        "마늘": 60,
         "바나나": 7,
+        "배추": 10,
+        "버섯": 7,
         "브로콜리": 5,
-        "닭가슴살": 3,
+        "사과": 30,
+        "상추": 7,
+        "새우": 2,
         "소고기": 4,
-        "생선": 2
+        "시금치": 7,
+        "양파": 90,
+        "오렌지": 20,
+        "우유": 7,
+        "요거트": 14,
+        "자몽": 14,
+        "치즈": 60,
+        "콩나물": 3,
+        "토마토": 10,
+        "파": 7,
+        "포도": 7,
+        "피망": 10,
+        "햄": 5
     };
 
     let fridgeContents = loadFridgeContents(); // 로컬 스토리지에서 냉장고 내용 로드
@@ -39,16 +55,18 @@ document.addEventListener('DOMContentLoaded', () => {
         fridgeInterior.classList.toggle('open');
     });
 
-    // 음식 목록 렌더링
+    // 음식 목록 렌더링 (가나다순 정렬 추가)
     function renderFoodSelection() {
         foodListContainer.innerHTML = ''; // 기존 목록 비우기
-        for (const foodName in foodExpiryData) {
+        const sortedFoodNames = Object.keys(foodExpiryData).sort((a, b) => a.localeCompare(b, 'ko-KR')); // 가나다순 정렬
+
+        sortedFoodNames.forEach(foodName => {
             const foodItemDiv = document.createElement('div');
             foodItemDiv.classList.add('food-item-select');
             foodItemDiv.textContent = foodName;
             foodItemDiv.dataset.food = foodName;
             foodListContainer.appendChild(foodItemDiv);
-        }
+        });
     }
 
     // 음식 아이템을 냉장고에 추가
