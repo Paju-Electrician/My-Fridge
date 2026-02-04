@@ -69,6 +69,18 @@ h1 {
     padding: 0;
 }
 
+/* 아이템 등장 애니메이션 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 아이템 사라짐 애니메이션 */
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+}
+
 #itemList li {
     background-color: #f9f9f9;
     border: 1px solid #eee;
@@ -79,16 +91,40 @@ h1 {
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    opacity: 0; /* 초기에는 보이지 않도록 */
+    transform: translateY(10px); /* 약간 아래에서 시작 */
+    animation: fadeIn 0.5s forwards; /* 등장 애니메이션 적용 */
+    transition: background-color 0.3s ease; /* 배경색 변화 부드럽게 */
+}
+
+#itemList li.removing {
+    animation: fadeOut 0.5s forwards; /* 사라짐 애니메이션 적용 */
+}
+
+
+/* 유통기한 임박/만료 시 강조 애니메이션 */
+@keyframes pulseRed {
+    0% { background-color: #fdd; }
+    50% { background-color: #fcc; }
+    100% { background-color: #fdd; }
+}
+
+@keyframes pulseYellow {
+    0% { background-color: #ffe; }
+    50% { background-color: #ffd; }
+    100% { background-color: #ffe; }
 }
 
 #itemList li.expired {
     background-color: #fdd;
     border-color: #fbc;
+    animation: pulseRed 1.5s infinite alternate; /* 만료됨 애니메이션 */
 }
 
 #itemList li.expiring-soon {
     background-color: #ffe;
     border-color: #eed;
+    animation: pulseYellow 1.5s infinite alternate; /* 곧 만료 애니메이션 */
 }
 
 #itemList li span {

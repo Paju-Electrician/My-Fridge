@@ -47,9 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 아이템 삭제 함수
     function deleteItem(id) {
-        items = items.filter(item => item.id !== id);
-        saveItems();
-        renderItems();
+        const itemToRemove = document.querySelector(`li button[data-id="${id}"]`).closest('li');
+        if (itemToRemove) {
+            itemToRemove.classList.add('removing'); // 사라짐 애니메이션 클래스 추가
+            itemToRemove.addEventListener('animationend', () => {
+                items = items.filter(item => item.id !== id);
+                saveItems();
+                renderItems(); // 애니메이션 완료 후 아이템 목록 다시 렌더링
+            }, { once: true }); // 이벤트 리스너 한 번만 실행
+        }
     }
 
     // 아이템 목록 렌더링 함수
