@@ -199,6 +199,12 @@ h2 {
     cursor: grab;
 }
 
+.fridge-item.selected {
+    border: 2px solid #2196f3; /* Highlight border */
+    box-shadow: 0 0 8px rgba(33, 150, 243, 0.6); /* Glow effect */
+    background-color: #e3f2fd; /* Light blue background */
+}
+
 .fridge-item .expiry-info {
     font-size: 0.7em; /* 폰트 사이즈 조정 */
     color: #78909c;

@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const foodSelection = document.querySelector('.food-selection'); // 음식 선택 섹션 참조 추가
     const clearAllItemsBtn = document.getElementById('clearAllItemsBtn');
 
+    fridgeImage.addEventListener('click', () => {
+        isFridgeInteriorOpen = !isFridgeInteriorOpen; // 상태 토글
+        updateFridgeView(); // 뷰 업데이트
+    });
+
 
     // Modal elements
     const foodSelectionModal = document.getElementById('foodSelectionModal');
@@ -14,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCategoryTitle = document.getElementById('modalCategoryTitle');
     const modalFoodItems = document.getElementById('modalFoodItems');
     const addSelectedFoodsBtn = document.getElementById('addSelectedFoodsBtn');
+    const currentDateDisplay = document.getElementById('currentDateDisplay');
 
     // 레시피 모달 요소
     const suggestRecipeBtn = document.getElementById('suggestRecipeBtn');
@@ -37,17 +43,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 냉장고 이미지/내부/음식 선택 섹션 가시성 업데이트 함수
     function updateFridgeView() {
-        if (fridgeContents.length > 0) {
+        if (fridgeContents.length > 0 || isFridgeInteriorOpen) { // 아이템이 있거나 수동으로 열림
             fridgeImage.style.display = 'none'; // 냉장고 이미지 숨기기
             fridgeInterior.classList.add('open'); // 냉장고 내부 보이기 (애니메이션 포함)
-        } else {
+        } else { // 아이템이 없고 수동으로 닫힘
             fridgeImage.style.display = 'block'; // 냉장고 이미지 보이기
             fridgeInterior.classList.remove('open'); // 냉장고 내부 숨기기
         }
     }
 
+    // 현재 날짜 표시 함수 (년, 월, 일만)
+    function updateDateDisplay() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작
+        const day = now.getDate().toString().padStart(2, '0');
+        
+        currentDateDisplay.textContent = `${year}년 ${month}월 ${day}일`;
+    }
+
     let currentModalCategory = ''; // 현재 모달에서 선택된 카테고리를 추적
     let draggedItem = null; // 드래그되는 카테고리 아이템을 추적
+    let isFridgeInteriorOpen = false; // 냉장고 내부가 수동으로 열렸는지 여부
 
     // 음식 선택 모달 열기
     function openFoodSelectionModal(categoryName) {
@@ -99,20 +116,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // AI 기반 레시피 추천 가져오기
-    function getRecipeSuggestions() { // async 제거
-        if (fridgeContents.length === 0) {
-            recipeResults.innerHTML = '<p>냉장고에 음식이 없습니다. 요리할 재료를 먼저 추가해주세요!</p>';
+    function getRecipeSuggestions(ingredientsList = null) { // 선택된 재료 목록을 인수로 받음
+        let ingredientsToSearch;
+
+        if (ingredientsList && ingredientsList.length > 0) {
+            ingredientsToSearch = ingredientsList.join(', ');
+        } else if (fridgeContents.length > 0) {
+            ingredientsToSearch = fridgeContents.map(item => `${item.name}`).join(', ');
+        } else {
+            recipeResults.innerHTML = '<p>요리할 재료를 선택하거나 냉장고에 추가해주세요!</p>';
             return;
         }
 
-        const ingredients = fridgeContents.map(item => `${item.name}`).join(', '); // 수량 제외, 이름만
-        const recipeQuery = `${ingredients} 요리 레시피`;
-        const youtubeQuery = `${ingredients} 요리 유튜브`;
+        const recipeQuery = `${ingredientsToSearch} 요리 레시피`;
+        const youtubeQuery = `${ingredientsToSearch} 요리 유튜브`;
 
         const googleRecipeSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(recipeQuery)}`;
         const youtubeRecipeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeQuery)}`;
 
-        let recipesHtml = `<h4>"${ingredients}" 재료를 위한 레시피 제안:</h4>`;
+        let recipesHtml = `<h4>"${ingredientsToSearch}" 재료를 위한 레시피 제안:</h4>`;
         recipesHtml += `
             <div class="recipe-card">
                 <p>다음 링크를 통해 레시피를 찾아보세요:</p>
@@ -486,9 +508,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clearAllItemsBtn.addEventListener('click', clearAllItems);
 
+    // 이벤트 리스너: 냉장고 아이템 선택 (다중 선택)
+    fridgeItemsContainer.addEventListener('click', (e) => {
+        const fridgeItem = e.target.closest('.fridge-item');
+        if (fridgeItem && !e.target.classList.contains('delete-btn')) { // 삭제 버튼 클릭 제외
+            fridgeItem.classList.toggle('selected');
+        }
+    });
+
     suggestRecipeBtn.addEventListener('click', () => {
         openRecipeModal();
-        getRecipeSuggestions();
+        const selectedFridgeItems = Array.from(fridgeItemsContainer.querySelectorAll('.fridge-item.selected'));
+        if (selectedFridgeItems.length > 0) {
+            const selectedIngredients = selectedFridgeItems.map(itemEl => {
+                const itemId = parseInt(itemEl.dataset.id);
+                const fridgeItem = fridgeContents.find(item => item.id === itemId);
+                return fridgeItem ? fridgeItem.name : null;
+            }).filter(Boolean); // null 값 제거
+
+            getRecipeSuggestions(selectedIngredients);
+        } else {
+            getRecipeSuggestions(); // 선택된 아이템이 없으면 기존처럼 모든 아이템으로 추천
+        }
     });
 
     closeRecipeModalBtn.addEventListener('click', closeRecipeModal);
@@ -504,6 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // renderFridgeContents(); // updateTexts에서 호출되므로 주석 처리
     updateTexts(); // 초기 로드 시 텍스트 업데이트
     updateFridgeView(); // 냉장고 뷰 업데이트
+    updateDateDisplay(); // 현재 날짜 표시 업데이트
 
 
 
