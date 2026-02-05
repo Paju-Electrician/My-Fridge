@@ -76,7 +76,7 @@ h2 {
     background-color: #e3f2fd;
     border: 2px solid #90a4ae;
     border-radius: 8px;
-    width: calc(100% - 110px); /* 이미지 너비만큼 제외 */
+    width: 100%; /* 부모 컨테이너 너비 꽉 채우기 */
     height: 100%; /* 부모 컨테이너 높이 꽉 채우기 */
     padding: 10px;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
@@ -102,6 +102,34 @@ h2 {
     border-bottom: none;
 }
 
+/* fridge-header-controls for h2 and buttons on one line */
+.fridge-header-controls {
+    display: flex;
+    justify-content: space-between; /* Space out the h2 and buttons */
+    align-items: center; /* Vertically align them */
+    margin-bottom: 10px; /* Add some space below this row */
+    gap: 10px; /* Space between buttons if they are next to each other */
+}
+
+/* Group buttons together */
+.fridge-header-buttons {
+    display: flex;
+    gap: 10px; /* Space between the two buttons */
+}
+
+/* Adjust h2 margin within this new flex container */
+.fridge-header-controls h2 {
+    margin: 0; /* Remove default h2 margin */
+    border-bottom: none; /* Remove border from h2 in this context */
+}
+
+/* Adjust button alignment within this new flex container - override existing */
+.fridge-header-controls .clear-all-btn,
+.fridge-header-controls .suggest-recipe-btn {
+    align-self: center; /* Align buttons to center of the row */
+    margin-top: 0; /* Remove top margin if needed */
+}
+
 /* 전체 삭제 버튼 */
 .clear-all-btn {
     background-color: #f44336;
@@ -111,8 +139,8 @@ h2 {
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.85em; /* 폰트 사이즈 조정 */
-    margin-top: 5px;
-    align-self: flex-end;
+    /* margin-top: 5px; */
+    /* align-self: flex-end; */
     transition: background-color 0.3s ease;
     flex-shrink: 0;
 }
@@ -130,8 +158,8 @@ h2 {
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.9em;
-    margin-top: 5px;
-    align-self: flex-end; /* Align with clear button */
+    /* margin-top: 5px; */
+    /* align-self: flex-end; */
     transition: background-color 0.3s ease;
     flex-shrink: 0;
 }
@@ -227,6 +255,14 @@ h2 {
 .fridge-item:hover .delete-btn {
     visibility: visible;
     opacity: 1;
+}
+
+/* Dragging style for fridge items */
+.fridge-item.dragging-fridge-item {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .fridge-item .delete-btn:hover {

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal elements
     const foodSelectionModal = document.getElementById('foodSelectionModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn'); // 다시 선언
     const modalCategoryTitle = document.getElementById('modalCategoryTitle');
     const modalFoodItems = document.getElementById('modalFoodItems');
     const addSelectedFoodsBtn = document.getElementById('addSelectedFoodsBtn');
@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let currentModalCategory = ''; // 현재 모달에서 선택된 카테고리를 추적
+    let draggedItem = null; // 드래그되는 카테고리 아이템을 추적
 
     // 음식 선택 모달 열기
     function openFoodSelectionModal(categoryName) {
@@ -169,18 +170,133 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('myFridgeContents', JSON.stringify(fridgeContents));
     }
 
+    // 카테고리 순서를 로컬 스토리지에 저장
+    function saveCategoryOrder() {
+        const currentOrder = Array.from(foodCategoriesContainer.children)
+                               .map(div => div.dataset.category);
+        localStorage.setItem('foodCategoryOrder', JSON.stringify(currentOrder));
+    }
 
+    // 로컬 스토리지에서 카테고리 순서를 불러오기
+    function loadCategoryOrder() {
+        const storedOrder = localStorage.getItem('foodCategoryOrder');
+        return storedOrder ? JSON.parse(storedOrder) : null;
+    }
+
+    // 냉장고 아이템 순서를 로컬 스토리지에 저장
+    function saveFridgeContentsOrder() {
+        const currentOrder = Array.from(fridgeItemsContainer.children)
+                               .map(div => parseInt(div.dataset.id)); // ID만 추출
+        // fridgeContents 배열 자체를 순서에 맞게 재정렬
+        fridgeContents.sort((a, b) => currentOrder.indexOf(a.id) - currentOrder.indexOf(b.id));
+        saveFridgeContents(); // 정렬된 내용을 다시 저장
+    }
+
+
+
+    // 드래그 앤 드롭 로직 시작
+    foodCategoriesContainer.addEventListener('dragstart', (e) => {
+        if (e.target.classList.contains('food-category-select')) {
+            draggedItem = e.target;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.target.dataset.category); // 드래그 데이터 설정
+            setTimeout(() => {
+                e.target.classList.add('dragging'); // 드래그 시작 시 스타일 적용
+            }, 0);
+        }
+    });
+
+    foodCategoriesContainer.addEventListener('dragover', (e) => {
+        e.preventDefault(); // 드롭을 허용하기 위해 기본 동작 방지
+        const draggingEl = document.querySelector('.dragging');
+        if (e.target.classList.contains('food-category-select') && e.target !== draggingEl) {
+            e.dataTransfer.dropEffect = 'move';
+            const allCategories = Array.from(foodCategoriesContainer.children);
+            const draggingIndex = allCategories.indexOf(draggingEl);
+            const targetIndex = allCategories.indexOf(e.target);
+
+            if (draggingIndex < targetIndex) {
+                // 드래그하는 아이템이 타겟보다 뒤에 있으면, 타겟 뒤에 삽입
+                foodCategoriesContainer.insertBefore(draggingEl, e.target.nextSibling);
+            } else {
+                // 드래그하는 아이템이 타겟보다 앞에 있으면, 타겟 앞에 삽입
+                foodCategoriesContainer.insertBefore(draggingEl, e.target);
+            }
+        }
+    });
+
+    foodCategoriesContainer.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging'); // 드래그 종료 시 스타일 제거
+        draggedItem = null; // 드래그 아이템 초기화
+        saveCategoryOrder(); // 변경된 순서 저장 (Task 4)
+    });
+
+    // 드롭 시 기본 동작 방지 (dragover에서 이미 처리)
+    foodCategoriesContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+    });
+
+    // 드래그 앤 드롭 로직 시작 (냉장고 아이템)
+    fridgeItemsContainer.addEventListener('dragstart', (e) => {
+        if (e.target.classList.contains('fridge-item')) {
+            draggedItem = e.target;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.target.dataset.id); // 드래그 데이터 설정 (아이템 ID)
+            setTimeout(() => {
+                e.target.classList.add('dragging-fridge-item'); // 드래그 시작 시 스타일 적용
+            }, 0);
+        }
+    });
+
+    fridgeItemsContainer.addEventListener('dragover', (e) => {
+        e.preventDefault(); // 드롭을 허용하기 위해 기본 동작 방지
+        const draggingEl = document.querySelector('.dragging-fridge-item');
+        if (e.target.classList.contains('fridge-item') && e.target !== draggingEl) {
+            e.dataTransfer.dropEffect = 'move';
+            const allItems = Array.from(fridgeItemsContainer.children);
+            const draggingIndex = allItems.indexOf(draggingEl);
+            const targetIndex = allItems.indexOf(e.target);
+
+            if (draggingIndex < targetIndex) {
+                fridgeItemsContainer.insertBefore(draggingEl, e.target.nextSibling);
+            } else {
+                fridgeItemsContainer.insertBefore(draggingEl, e.target);
+            }
+        }
+    });
+
+    fridgeItemsContainer.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging-fridge-item'); // 드래그 종료 시 스타일 제거
+        draggedItem = null; // 드래그 아이템 초기화
+        saveFridgeContentsOrder(); // 변경된 순서 저장 (Task 4)
+    });
+
+    // 드롭 시 기본 동작 방지 (dragover에서 이미 처리)
+    fridgeItemsContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+    });
 
     // 음식 카테고리 렌더링
     function renderFoodCategories() {
         foodCategoriesContainer.innerHTML = ''; // 기존 목록 비우기
-        const sortedCategories = Object.keys(foodCategoriesData).sort((a, b) => a.localeCompare(b, 'ko-KR'));
 
-        sortedCategories.forEach(categoryName => {
+        let categoriesToRender = Object.keys(foodCategoriesData);
+        const savedOrder = loadCategoryOrder();
+
+        if (savedOrder && savedOrder.length === categoriesToRender.length && savedOrder.every(cat => categoriesToRender.includes(cat))) {
+            // 저장된 순서가 있고, 모든 카테고리가 포함되어 있으면 저장된 순서 사용
+            categoriesToRender = savedOrder;
+        } else {
+            // 저장된 순서가 없거나 유효하지 않으면 기본 정렬 순서 사용
+            categoriesToRender.sort((a, b) => a.localeCompare(b, 'ko-KR'));
+        }
+
+        categoriesToRender.forEach(categoryName => {
             const categoryDiv = document.createElement('div');
             categoryDiv.classList.add('food-category-select'); // New class for categories
             categoryDiv.textContent = categoryName;
             categoryDiv.dataset.category = categoryName;
+            categoryDiv.setAttribute('draggable', 'true'); // 드래그 가능하도록 설정
             foodCategoriesContainer.appendChild(categoryDiv);
         });
 
@@ -251,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const foodItemDiv = document.createElement('div');
             foodItemDiv.classList.add('fridge-item');
             foodItemDiv.dataset.id = item.id;
+            foodItemDiv.setAttribute('draggable', 'true'); // 드래그 가능하도록 설정
 
             const expiryDate = new Date(item.expiry);
             expiryDate.setHours(0, 0, 0, 0);
@@ -274,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 expiryInfo = `${daysLeft}일 남음`;
                 foodItemDiv.classList.add('expiring-soon');
             } else {
-                expiryInfo = `${item.expiry} (${daysLeft}일 남음)`;
+                expiryInfo = `${daysLeft}일 남음`;
             }
 
             foodItemDiv.innerHTML = `
@@ -303,6 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fridgeContents = fridgeContents.filter(item => item.id !== id);
                 saveFridgeContents();
                 renderFridgeContents(); // 애니메이션 완료 후 냉장고 내용 다시 렌더링
+                updateFridgeView(); // 마지막 아이템 삭제 후 뷰 업데이트
             }, { once: true }); // 이벤트 리스너 한 번만 실행
         }
     }
@@ -360,6 +478,12 @@ document.addEventListener('DOMContentLoaded', () => {
         closeFoodSelectionModal(); // 모든 선택된 음식 추가 후 모달 닫기
     });
 
+    // 모달 닫기 버튼 이벤트 리스너 (직접 리스너 재추가)
+    closeModalBtn.addEventListener('click', (e) => {
+        closeFoodSelectionModal();
+        e.stopPropagation(); // 버블링 방지
+    });
+
     clearAllItemsBtn.addEventListener('click', clearAllItems);
 
     suggestRecipeBtn.addEventListener('click', () => {
@@ -381,8 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTexts(); // 초기 로드 시 텍스트 업데이트
     updateFridgeView(); // 냉장고 뷰 업데이트
 
-    // 모달 닫기 버튼 이벤트 리스너
-    closeModalBtn.addEventListener('click', closeFoodSelectionModal);
+
 
     // 모달 외부 클릭 시 닫기
     window.addEventListener('click', (event) => {
