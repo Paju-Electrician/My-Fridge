@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentModalCategory = ''; // 현재 모달에서 선택된 카테고리를 추적
     let draggedItem = null; // 드래그되는 카테고리 아이템을 추적
     let isFridgeInteriorOpen = false; // 냉장고 내부가 수동으로 열렸는지 여부
+    let uniqueIdCounter = 0; // 고유 ID 생성을 위한 카운터
 
     // 음식 선택 모달 열기
     function openFoodSelectionModal(categoryName) {
@@ -338,8 +339,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 페이지 로드 시 첫 번째 카테고리를 기본으로 선택하여 렌더링
-        if (sortedCategories.length > 0) {
-            foodCategoriesContainer.querySelector(`[data-category="${sortedCategories[0]}"]`).classList.add('selected');
+        if (categoriesToRender.length > 0) {
+            foodCategoriesContainer.querySelector(`[data-category="${categoriesToRender[0]}"]`).classList.add('selected');
             // renderFoodItemsForCategory(sortedCategories[0]); // 모달로 대체됨
         }
     }
@@ -364,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
             expiryDate.setDate(today.getDate() + expiryDays);
 
             const newItem = {
-                id: Date.now(),
+                id: Date.now() * 1000 + uniqueIdCounter++, // 밀리초 * 1000 + 카운터로 고유 ID 생성
                 name: foodName,
                 quantity: quantity, // 전달받은 수량 사용
                 expiry: expiryDate.toISOString().split('T')[0], // YYYY-MM-DD 형식
