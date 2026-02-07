@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>냉장고를 부탁해</title>
     <link rel="icon" href="fridge.ico" type="image/x-icon">
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+      }
+    }
+    </script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,19 +22,12 @@
 
 
         <div class="fridge-container">
-            <img src="fridge.png" alt="Refrigerator" class="fridge-image" id="fridgeImage">
-            <div class="fridge-interior" id="fridgeInterior">
-                <div class="fridge-header-controls">
-                    <h2>냉장고 내부</h2>
-                    <div class="fridge-header-buttons">
-                        <button id="clearAllItemsBtn" class="clear-all-btn">모두 삭제</button>
-                        <button id="suggestRecipeBtn" class="suggest-recipe-btn">요리 추천 받기 (AI)</button>
-                    </div>
-                </div>
-                <div class="fridge-items" id="fridgeItems">
-                    <!-- 냉장고 속 음식 아이템들이 여기에 추가됩니다 -->
-                </div>
-            </div>
+            <!-- 3D Canvas is inserted here by script.js -->
+        </div>
+
+        <div class="actions-container">
+            <button id="clearAllItemsBtn" class="clear-all-btn">모두 삭제</button>
+            <button id="suggestRecipeBtn" class="suggest-recipe-btn">요리 추천 받기 (AI)</button>
         </div>
 
         <div class="food-selection">
@@ -34,7 +35,6 @@
             <div class="food-categories" id="foodCategories">
                 <!-- 음식 카테고리 버튼들이 여기에 동적으로 로드됩니다 -->
             </div>
-
         </div>
     </div>
 
@@ -63,6 +63,12 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
+
+    <div class="zoom-controls-ui">
+        <label for="cameraZoomSlider">확대/축소: </label>
+        <input type="range" id="cameraZoomSlider" min="20" max="100" value="50">
+        <span id="cameraZoomValue">50%</span>
+    </div>
 </body>
 </html>

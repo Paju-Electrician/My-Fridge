@@ -44,105 +44,47 @@ h2 {
 
 /* 냉장고 컨테이너 */
 .fridge-container {
+    position: relative; /* Positioning context for canvas and interior */
     display: flex;
-    flex-direction: row; /* 이미지를 옆으로 배치 */
-    align-items: flex-start; /* 상단 정렬 */
-    gap: 10px; /* 간격 조정 */
-    padding: 10px; /* 패딩 줄임 */
+    align-items: flex-start;
+    padding: 10px;
     border: 1px solid #cfd8dc;
     border-radius: 10px;
     background-color: #f5f8fa;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
-    flex-grow: 1; /* 남은 공간 차지 */
-    overflow: hidden; /* 내부 스크롤 방지 */
+    flex-grow: 1;
+    overflow: hidden;
 }
 
-.fridge-image {
-    width: 100%; /* 이미지 크기 조정 */
-    height: 100%; /* 높이 조정 */
-    object-fit: contain; /* 원본 형태 유지 */
-    cursor: pointer;
-    transition: transform 0.3s ease-in-out;
-    border: 2px solid #90a4ae;
-    border-radius: 5px;
+/* Canvas for 3D model */
+.fridge-container canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    outline: none;
 }
 
-.fridge-image:hover {
-    transform: scale(1.05);
-}
-
-/* 냉장고 내부 */
-.fridge-interior {
-    background-color: #e3f2fd;
-    border: 2px solid #90a4ae;
-    border-radius: 8px;
-    width: 100%; /* 부모 컨테이너 너비 꽉 채우기 */
-    height: 100%; /* 부모 컨테이너 높이 꽉 채우기 */
-    padding: 10px;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-    display: none;
-    flex-direction: column;
-    gap: 5px; /* 간격 조정 */
-    position: relative;
-    transition: all 0.5s ease-in-out;
-    opacity: 0;
-    transform: translateX(20px); /* 옆으로 이동하며 나타나도록 */
-    box-sizing: border-box;
-}
-
-.fridge-interior.open {
+/* Container for global action buttons */
+.actions-container {
     display: flex;
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.fridge-interior h2 {
-    margin-bottom: 5px; /* 내부 h2 마진 조정 */
-    font-size: 1.1em;
-    border-bottom: none;
-}
-
-/* fridge-header-controls for h2 and buttons on one line */
-.fridge-header-controls {
-    display: flex;
-    justify-content: space-between; /* Space out the h2 and buttons */
-    align-items: center; /* Vertically align them */
-    margin-bottom: 10px; /* Add some space below this row */
-    gap: 10px; /* Space between buttons if they are next to each other */
-}
-
-/* Group buttons together */
-.fridge-header-buttons {
-    display: flex;
-    gap: 10px; /* Space between the two buttons */
-}
-
-/* Adjust h2 margin within this new flex container */
-.fridge-header-controls h2 {
-    margin: 0; /* Remove default h2 margin */
-    border-bottom: none; /* Remove border from h2 in this context */
-}
-
-/* Adjust button alignment within this new flex container - override existing */
-.fridge-header-controls .clear-all-btn,
-.fridge-header-controls .suggest-recipe-btn {
-    align-self: center; /* Align buttons to center of the row */
-    margin-top: 0; /* Remove top margin if needed */
+    justify-content: center;
+    gap: 15px;
+    margin-top: 5px; /* Add some space above */
+    flex-shrink: 0;
 }
 
 /* 전체 삭제 버튼 */
 .clear-all-btn {
     background-color: #f44336;
     color: white;
-    padding: 5px 10px; /* 패딩 줄임 */
+    padding: 8px 15px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 0.85em; /* 폰트 사이즈 조정 */
-    /* margin-top: 5px; */
-    /* align-self: flex-end; */
+    font-size: 0.9em;
     transition: background-color 0.3s ease;
-    flex-shrink: 0;
 }
 
 .clear-all-btn:hover {
@@ -158,121 +100,11 @@ h2 {
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.9em;
-    /* margin-top: 5px; */
-    /* align-self: flex-end; */
     transition: background-color 0.3s ease;
-    flex-shrink: 0;
 }
 
 .suggest-recipe-btn:hover {
     background-color: #45a049;
-}
-
-.fridge-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px; /* 간격 조정 */
-    min-height: 50px;
-    border: 1px dashed #a7d9f7;
-    padding: 5px;
-    border-radius: 5px;
-    align-content: flex-start;
-    flex-grow: 1; /* 남은 공간 차지 */
-    overflow-y: auto; /* 내용이 많아지면 스크롤 */
-}
-
-/* 냉장고 안의 음식 아이템 */
-.fridge-item {
-    background-color: #ffffff;
-    border: 1px solid #b0bec5;
-    border-radius: 5px;
-    padding: 5px 8px; /* 패딩 줄임 */
-    font-size: 0.8em; /* 폰트 사이즈 조정 */
-    color: #455a64;
-    position: relative;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    transition: all 0.3s ease;
-    cursor: grab;
-}
-
-.fridge-item.selected {
-    border: 2px solid #2196f3; /* Highlight border */
-    box-shadow: 0 0 8px rgba(33, 150, 243, 0.6); /* Glow effect */
-    background-color: #e3f2fd; /* Light blue background */
-}
-
-.fridge-item .expiry-info {
-    font-size: 0.7em; /* 폰트 사이즈 조정 */
-    color: #78909c;
-    white-space: nowrap;
-}
-
-.fridge-item.expired {
-    background-color: #ffebee; /* 옅은 붉은색 */
-    border-color: #ef9a9a;
-    animation: pulseRed 1.5s infinite alternate;
-}
-
-/* 0-1일 남음 (빨간색 경고) */
-.fridge-item.expiring-soon-red {
-    background-color: #ffebee; /* 만료와 유사한 붉은색 계열 */
-    border-color: #ef9a9a;
-    animation: pulseRed 1.5s infinite alternate; /* 강한 경고 */
-}
-
-/* 2-3일 남음 (노란색 경고) */
-.fridge-item.expiring-soon-yellow {
-    background-color: #fffde7; /* 옅은 노란색 */
-    border-color: #ffcc80;
-    animation: pulseYellow 1.5s infinite alternate; /* 중간 경고 */
-}
-
-/* 4-7일 남음 (기존 노란색 경고) */
-.fridge-item.expiring-soon {
-    background-color: #fff8e1; /* 더 옅은 노란색 */
-    border-color: #ffe0b2;
-}
-
-/* 삭제 버튼 */
-.fridge-item .delete-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: #ef5350;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 0.7em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    visibility: hidden; /* 기본적으로 숨김 */
-    opacity: 0;
-}
-
-.fridge-item:hover .delete-btn {
-    visibility: visible;
-    opacity: 1;
-}
-
-/* Dragging style for fridge items */
-.fridge-item.dragging-fridge-item {
-    opacity: 0.5;
-    cursor: grabbing;
-    transform: scale(1.02);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.fridge-item .delete-btn:hover {
-    background-color: #d32f2f;
 }
 
 /* 음식 추가 선택 섹션 */
@@ -283,7 +115,6 @@ h2 {
     border: 1px solid #cfd8dc;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
     flex-shrink: 0; /* 줄어들지 않도록 */
-    /* display: none; */ /* 초기에는 숨김 */
 }
 
 .food-selection h2 {
@@ -606,6 +437,65 @@ h2 {
 .search-recipe-btn:hover {
     background-color: #039be5;
 }
+
+/* New styles for zoom controls UI */
+.zoom-controls-ui {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #334e68;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.zoom-controls-ui label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.zoom-controls-ui input[type="range"] {
+    width: 200px;
+    -webkit-appearance: none;
+    background: #557a95;
+    height: 8px;
+    border-radius: 5px;
+    outline: none;
+    transition: opacity .2s;
+}
+
+.zoom-controls-ui input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #e0f2f7;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.zoom-controls-ui input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #e0f2f7;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.zoom-controls-ui #cameraZoomValue {
+    font-weight: bold;
+    min-width: 40px;
+    text-align: center;
+}
+
 @media (max-width: 768px) {
     body {
         padding: 5px;
