@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Controls ---
         // OrbitControls is created but completely disabled to isolate animation
         controls = new OrbitControls(camera, renderer.domElement);
-        controls.enabled = false;
+        controls.enabled = true;
         
         // --- Animation Loop ---
         function animate() {
@@ -342,24 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function onPointerDown(event) {
         isPointerDown = true;
         pointerDownPos.set(event.clientX, event.clientY);
-        previousPointerPos.x = event.clientX;
-        previousPointerPos.y = event.clientY;
     }
-
-    function onPointerMove(event) {
-        if (!isPointerDown) return;
-
-        const deltaX = event.clientX - previousPointerPos.x;
-        const rotationSpeed = 0.005;
-
-        // Rotate the entire fridge model
-        fridgeModel.rotation.y += deltaX * rotationSpeed;
-
-        previousPointerPos.x = event.clientX;
-        previousPointerPos.y = event.clientY;
-    }
-
-
+    
     function onPointerUp(event) {
         isPointerDown = false;
         const pointerUpPos = new THREE.Vector2(event.clientX, event.clientY);
