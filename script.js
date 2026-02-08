@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isBottomDoorOpen = false;
     let topAutoCloseTimer = null; // Timer to automatically close the top door
     let bottomAutoCloseTimer = null; // Timer to automatically close the bottom door
+    let selectedFoodMesh = null; // Store the currently selected food mesh
 
     const pointerDownPos = new THREE.Vector2();
     let isPointerDown = false;
@@ -134,8 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Top Interior Walls
         createInteriorWalls(fridgeWidth, topFridgeHeight, fridgeDepth, wallThickness, interiorWallMaterial, topFridgeHeight / 2, fridgeModel);
         topFoodItemsGroup = new THREE.Group();
-        topFoodItemsGroup.position.y = topFridgeHeight / 2; // Relative to top fridge section
-        topFoodItemsGroup.position.z = -fridgeDepth / 2 + wallThickness + 0.1;
         fridgeModel.add(topFoodItemsGroup);
 
 
@@ -163,8 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Bottom Interior Walls
         createInteriorWalls(fridgeWidth, bottomFridgeHeight, fridgeDepth, wallThickness, interiorWallMaterial, -bottomFridgeHeight / 2, fridgeModel);
         bottomFoodItemsGroup = new THREE.Group();
-        bottomFoodItemsGroup.position.y = -bottomFridgeHeight / 2; // Relative to bottom fridge section
-        bottomFoodItemsGroup.position.z = -fridgeDepth / 2 + wallThickness + 0.1;
         fridgeModel.add(bottomFoodItemsGroup);
 
 
@@ -264,20 +261,17 @@ document.addEventListener('DOMContentLoaded', () => {
             bottomDoor.rotation.y = THREE.MathUtils.lerp(bottomDoor.rotation.y, bottomDoorTargetAngle, 0.1);
 
             // Dynamically calculate camera target position to prevent zoom on door open
-            const cameraTargetPos = cameraInitialPos.clone(); // Start with current non-open position
+            let targetCameraPosition;
+            let targetLookAt;
             if (isTopDoorOpen || isBottomDoorOpen) {
-                // Shift camera's X and Y to look straight into the interior, keeping Z (distance from general fridge area) constant
-                cameraTargetPos.x = 0; // Look straight into the center horizontally
-                cameraTargetPos.y = 0; // Look straight into the center vertically
+                targetCameraPosition = cameraLookInsidePos; // Use the pre-calculated internal view position
+                targetLookAt = lookAtTargetInside;
+            } else {
+                targetCameraPosition = cameraInitialPos; // Use the initial external view position
+                targetLookAt = lookAtTargetOutside;
             }
-            camera.position.lerp(cameraTargetPos, 0.1);
-            
-            // This now uses lookAtTargetInside which is (0,0,0) like lookAtTargetOutside
-            const lookAtTarget = (isTopDoorOpen || isBottomDoorOpen) ? lookAtTargetInside : lookAtTargetOutside;
-            // Manually lerp the point the camera is looking at
-            const currentLookAt = new THREE.Vector3().copy(camera.position).add(camera.getWorldDirection(new THREE.Vector3()));
-            currentLookAt.lerp(lookAtTarget, 0.1);
-            camera.lookAt(lookAtTarget);
+            camera.position.lerp(targetCameraPosition, 0.1);
+            camera.lookAt(targetLookAt);
 
             renderer.render(scene, camera);
         }
@@ -298,6 +292,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // Functions for food item selection/deselection
+    function selectFoodItem(mesh) {
+        if (selectedFoodMesh) {
+            unselectFoodItem();
+        }
+        selectedFoodMesh = mesh;
+        // Highlight the selected mesh
+        if (selectedFoodMesh.material.emissive) { 
+            selectedFoodMesh.material.emissive.setHex(0x00ff00); // Green highlight
+        }
+    }
+
+    function unselectFoodItem() {
+        if (selectedFoodMesh) {
+            // Restore original color (turn off emissive)
+            if (selectedFoodMesh.material.emissive) {
+                selectedFoodMesh.material.emissive.setHex(0x000000); 
+            }
+            selectedFoodMesh = null;
+        }
+    }
+
+    function moveFoodItemToCompartment(foodItemId, targetGroup) {
+        const itemToMove = fridgeContents.find(item => item.id === foodItemId);
+        if (!itemToMove) return;
+
+        // Determine the current group of the item
+        const currentGroup = itemToMove.category === "과일류" || itemToMove.category === "유제품" || itemToMove.category === "채소류" ? topFoodItemsGroup : bottomFoodItemsGroup;
+
+        // If trying to move to the same group, do nothing.
+        if (currentGroup === targetGroup) {
+            return;
+        }
+
+        // Update the item's category in the data to force it into the new targetGroup on re-render
+        if (targetGroup === topFoodItemsGroup) {
+            // Assign a category that would naturally go to topFoodItemsGroup (e.g., first available)
+            itemToMove.category = "과일류"; 
+        } else { // targetGroup === bottomFoodItemsGroup
+            itemToMove.category = "육류"; // Assign a category that would naturally go to bottomFoodItemsGroup
+        }
+
+        saveFridgeContents();
+        render3dFridgeContents(); // Re-render all items to apply new positions
+    }
+
+
     function onPointerDown(event) {
         isPointerDown = true;
         pointerDownPos.set(event.clientX, event.clientY);
@@ -324,30 +365,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const pointerUpPos = new THREE.Vector2(event.clientX, event.clientY);
         // It's a click if the mouse hasn't moved much
         if (pointerDownPos.distanceTo(pointerUpPos) < 5) { 
-            // Raycast to detect which door was clicked
+            // Raycast to detect which door or food item was clicked
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
             pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(pointer, camera);
-            const intersects = raycaster.intersectObjects([topDoor, bottomDoor], true); // Intersect with door groups
+            // Include all food meshes from both groups, flatten the array for intersectObjects
+            const allFoodMeshes = [...topFoodItemsGroup.children.filter(child => child.isMesh), ...bottomFoodItemsGroup.children.filter(child => child.isMesh)];
+            const intersectableObjects = [...allFoodMeshes, topDoor.children[0], bottomDoor.children[0]]; // topDoor.children[0] is the actual mesh
+
+            const intersects = raycaster.intersectObjects(intersectableObjects, true); // Intersect with door groups and food meshes
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
-                const parentDoor = clickedObject.parent.userData.name; // topDoor or bottomDoor group
-
-                if (parentDoor === "topDoor") {
-                    if (topAutoCloseTimer) {
-                        clearTimeout(topAutoCloseTimer);
-                        topAutoCloseTimer = null;
+                
+                // Check if a door was clicked
+                if (clickedObject.parent === topDoor || clickedObject.parent === bottomDoor) {
+                    const parentDoor = clickedObject.parent.userData.name;
+                    if (selectedFoodMesh) {
+                        // Move selected item to the other compartment
+                        const targetCompartmentGroup = (parentDoor === "topDoor") ? bottomFoodItemsGroup : topFoodItemsGroup;
+                        moveFoodItemToCompartment(selectedFoodMesh.userData.id, targetCompartmentGroup);
+                        unselectFoodItem(); // Unselect after moving
+                    } else {
+                        // Open/close door
+                        if (parentDoor === "topDoor") {
+                            if (topAutoCloseTimer) { clearTimeout(topAutoCloseTimer); topAutoCloseTimer = null; }
+                            isTopDoorOpen = !isTopDoorOpen;
+                        } else if (parentDoor === "bottomDoor") {
+                            if (bottomAutoCloseTimer) { clearTimeout(bottomAutoCloseTimer); bottomAutoCloseTimer = null; }
+                            isBottomDoorOpen = !isBottomDoorOpen;
+                        }
                     }
-                    isTopDoorOpen = !isTopDoorOpen;
-                } else if (parentDoor === "bottomDoor") {
-                    if (bottomAutoCloseTimer) {
-                        clearTimeout(bottomAutoCloseTimer);
-                        bottomAutoCloseTimer = null;
+                } else if (clickedObject.isMesh) { // A food item mesh was clicked
+                    if (selectedFoodMesh === clickedObject) {
+                        // Clicked the same selected item, unselect it
+                        unselectFoodItem();
+                    } else {
+                        // Select a new item
+                        if (selectedFoodMesh) unselectFoodItem(); // Unselect previous
+                        selectFoodItem(clickedObject);
                     }
-                    isBottomDoorOpen = !isBottomDoorOpen;
                 }
+            } else { // Clicked empty space
+                if (selectedFoodMesh) unselectFoodItem(); // Unselect if clicked elsewhere
             }
         }
     }
@@ -392,6 +453,75 @@ document.addEventListener('DOMContentLoaded', () => {
         return mesh;
     }
 
+    // Helper function to create a text sprite
+    function makeTextSprite(message, parameters) {
+        if (parameters === undefined) parameters = {};
+        const fontface = parameters.hasOwnProperty("fontface") ? parameters["fontface"] : "Arial";
+        const fontsize = parameters.hasOwnProperty("fontsize") ? parameters["fontsize"] : 20; // Further reduced fontsize
+        const borderThickness = parameters.hasOwnProperty("borderThickness") ? parameters["borderThickness"] : 2;
+        const borderColor = parameters.hasOwnProperty("borderColor") ? parameters["borderColor"] : { r: 0, g: 0, b: 0, a: 1.0 };
+        const backgroundColor = parameters.hasOwnProperty("backgroundColor") ? parameters["backgroundColor"] : { r: 255, g: 255, b: 255, a: 1.0 };
+        const textColor = parameters.hasOwnProperty("textColor") ? parameters["textColor"] : { r: 0, g: 0, b: 0, a: 1.0 };
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        context.font = "Bold " + fontsize + "px " + fontface;
+        
+        // get size from context.measureText()
+        const metrics = context.measureText(message);
+        const textWidth = metrics.width;
+
+        const textPadding = 2; // Further reduced internal padding
+
+        // Adjust canvas dimensions for text and border
+        const canvasWidth = textWidth + textPadding * 2 + borderThickness * 2;
+        const canvasHeight = fontsize + textPadding * 2 + borderThickness * 2; 
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        // background color
+        context.fillStyle = "rgba(" + backgroundColor.r + "," + backgroundColor.g + "," + backgroundColor.b + "," + backgroundColor.a + ")";
+        // border color
+        context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + "," + borderColor.b + "," + borderColor.a + ")";
+
+        context.lineWidth = borderThickness;
+        roundRect(context, borderThickness / 2, borderThickness / 2, canvasWidth - borderThickness, canvasHeight - borderThickness, 6);
+
+        // text color
+        context.fillStyle = "rgba(" + textColor.r + ", " + textColor.g + ", " + textColor.b + ", 1.0)";
+        context.fillText(message, borderThickness + textPadding, fontsize + borderThickness + textPadding);
+
+        // canvas contents will be used for a texture
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true; // Added for good measure
+
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        
+        // Scale the sprite so that X pixels on canvas = 1 unit in 3D world
+        const scaleFactor = 0.01; // e.g., 1 unit = 100 pixels, so 100px text is 1 unit tall.
+        sprite.scale.set(canvasWidth * scaleFactor, canvasHeight * scaleFactor, 1); 
+
+        return sprite;
+    }
+
+    // function for drawing rounded rectangles
+    function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+
     function render3dFridgeContents() {
         // Clear both groups
         while(topFoodItemsGroup.children.length > 0){ 
@@ -410,42 +540,68 @@ document.addEventListener('DOMContentLoaded', () => {
     function add3dFoodItem(item, animateOpen) {
         const foodMesh = createFoodMesh(item);
         
+        foodMesh.geometry.computeBoundingBox();
+        const meshSize = new THREE.Vector3();
+        foodMesh.geometry.boundingBox.getSize(meshSize);
+
+        const actualItemWidth = meshSize.x;
+        const actualItemHeight = meshSize.y;
+        const actualItemDepth = meshSize.z;
+        
         // Decide which section to add the food to (e.g., based on category or just alternate)
         // For simplicity, let's alternate or put all in top for now.
         // A more robust solution would categorize.
-        const targetGroup = (item.category === "과일류" || item.category === "유제품") ? topFoodItemsGroup : bottomFoodItemsGroup;
+        const targetGroup = (item.category === "과일류" || item.category === "유제품" || item.category === "채소류") ? topFoodItemsGroup : bottomFoodItemsGroup;
 
         // Position items within their respective group's coordinate system
+        // Position items within their respective group's coordinate system
         const index = targetGroup.children.length;
-        const itemsPerRow = 4;
-        const itemWidth = 0.5; // Approx width of food item
-        const itemHeight = 0.5; // Approx height of food item
-        const itemDepth = 0.5; // Approx depth of food item
         const padding = 0.1; // Padding between items and walls
 
-        const col = index % itemsPerRow;
-        const row = Math.floor(index / itemsPerRow);
-        const layer = Math.floor(index / (itemsPerRow * 2)); // For stacking in Z
+        const actualItemWidthWithPadding = actualItemWidth + padding;
+        const xAvailable = fridgeWidth - 2 * wallThickness - 2 * padding;
+        const numCols = Math.floor(xAvailable / actualItemWidthWithPadding);
 
+        const availableHeight = (fridgeHeight / 2) - (2 * wallThickness);
+        const actualItemHeightWithPadding = actualItemHeight + padding;
+        const maxRowsPerLayer = Math.floor(availableHeight / actualItemHeightWithPadding);
+
+        const maxItemsPerLayer = numCols * maxRowsPerLayer;
+
+        const layer = Math.floor(index / maxItemsPerLayer);
+        const row = Math.floor((index % maxItemsPerLayer) / numCols);
+        const col = index % numCols;
+        
         // X position: Arrange items horizontally, centered in the fridge width
-        // Fridge width inside is fridgeWidth - 2*wallThickness
-        const innerWidth = fridgeWidth - 2 * wallThickness;
-        const xOffset = innerWidth / 2 - padding - itemWidth / 2; // Rightmost position
-        const x = -xOffset + col * (itemWidth + padding); // Arrange from left
+        const x = - (xAvailable / 2) + padding + actualItemWidth / 2 + col * actualItemWidthWithPadding;
 
         // Y position: Arrange items vertically, stacking from bottom
-        // Section height inside is currentSectionHeight - 2*wallThickness
-        const currentSectionHeight = (targetGroup === topFoodItemsGroup) ? fridgeHeight / 2 : fridgeHeight / 2; // Corrected section height
-        const innerHeight = currentSectionHeight - 2 * wallThickness;
-        const yOffset = -innerHeight / 2 + padding + itemHeight / 2; // Bottommost position
-        const y = yOffset + row * (itemHeight + padding); // Arrange from bottom
+        let y;
+        if (targetGroup === topFoodItemsGroup) {
+            // Bottom of top section is y=0 (shelf) + wallThickness
+            const y_bottom_limit_top = wallThickness + padding + actualItemHeight / 2;
+            y = y_bottom_limit_top + row * actualItemHeightWithPadding;
+        } else { // bottomFoodItemsGroup
+            // Bottom of bottom section is -fridgeHeight/2 + wallThickness
+            const y_bottom_limit_bottom = -fridgeHeight / 2 + wallThickness + padding + actualItemHeight / 2;
+            y = y_bottom_limit_bottom + row * actualItemHeightWithPadding;
+        }
 
-        // Z position: Arrange items in layers from back to front
-        const innerDepth = fridgeDepth - 2 * wallThickness;
-        const zOffset = -innerDepth / 2 + padding + itemDepth / 2; // Backmost position
-        const z = zOffset + layer * (itemDepth + padding); // Arrange from back
+        // Z position: Arrange items in layers from front to back
+        const actualItemDepthWithPadding = actualItemDepth + padding;
+        const zAvailable = fridgeDepth - 2 * wallThickness - 2 * padding;
+        const maxZInInterior = (fridgeDepth / 2) - wallThickness - padding - actualItemDepth / 2; // Front-most position for item center
+        const z = maxZInInterior - layer * actualItemDepthWithPadding;
         
         foodMesh.position.set(x, y, z);
+        
+        // Create and position the text sprite
+        const foodNameSprite = makeTextSprite(item.name, { fontsize: 32, backgroundColor: { r: 255, g: 255, b: 255, a: 0.6 } });
+        
+        // Position the sprite so its bottom edge aligns with the top of the food item
+        const sprite3DHeight = foodNameSprite.scale.y;
+        foodNameSprite.position.set(0, actualItemHeight / 2 + sprite3DHeight / 2, 0); 
+        foodMesh.add(foodNameSprite);
         
         targetGroup.add(foodMesh);
         
@@ -613,20 +769,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const mapSliderToCameraZ = (sliderValue) => {
             const minSlider = 20;
             const maxSlider = 100;
-            const minCameraZ = 2.0; // Closest zoom (more zoomed in)
-            const maxCameraZ = 7.0; // Farthest zoom (more zoomed out)
-            return minCameraZ + ((sliderValue - minSlider) / (maxSlider - minSlider)) * (maxCameraZ - minCameraZ); // CORRECTED
+            const minCameraZ = 2.0; // Closest zoom (most zoomed in)
+            const maxCameraZ = 7.0; // Farthest zoom (most zoomed out)
+            return maxCameraZ - ((sliderValue - minSlider) / (maxSlider - minSlider)) * (maxCameraZ - minCameraZ);
         };
         
         let initialCameraZ = mapSliderToCameraZ(currentZoomLevel);
         
         // Update initial camera positions based on slider
         cameraInitialPos.set(4, 3, initialCameraZ);
-        // To prevent zoom when opening door, cameraLookInsidePos's x,y,z will be set based on cameraInitialPos
-        cameraLookInsidePos.set(cameraInitialPos.x * 0.2, cameraInitialPos.y - 1, initialCameraZ);
         
-        // Apply initial camera position
-        camera.position.copy(cameraInitialPos);
+        // Calculate the initial distance from external camera position to external look-at target
+        const initialDistance = cameraInitialPos.distanceTo(lookAtTargetOutside);
+
+        // Define a base internal camera position (relative to lookAtTargetInside, which is (0,0,0))
+        // This is a fixed point to aim for when looking inside.
+        // E.g., slightly above the center of the fridge, and slightly in front.
+        let baseInternalCameraPos = new THREE.Vector3(0, 0.5, 2.5); // Adjust these values for optimal internal view
+
+        // Calculate the vector from lookAtTargetInside to baseInternalCameraPos
+        let internalVector = baseInternalCameraPos.clone().sub(lookAtTargetInside);
+
+        // Normalize this vector and scale it by the initialDistance to maintain zoom level
+        cameraLookInsidePos.copy(lookAtTargetInside).add(internalVector.normalize().multiplyScalar(initialDistance));
 
 
         cameraZoomSlider.addEventListener('input', (event) => {
@@ -635,11 +800,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const newCameraZ = mapSliderToCameraZ(currentZoomLevel);
             
-            // DO NOT update camera.position directly here as it conflicts with the animation loop.
-            // Instead, just update the target positions for the animation.
+            // Update cameraInitialPos.z based on slider
             cameraInitialPos.z = newCameraZ;
-            // Ensure no zoom when door opens, maintain current Z-distance
-            cameraLookInsidePos.set(cameraInitialPos.x * 0.2, cameraInitialPos.y - 1, newCameraZ); // Update all components based on slider
+
+            // Recalculate cameraLookInsidePos to maintain consistent distance
+            const currentInitialDistance = cameraInitialPos.distanceTo(lookAtTargetOutside);
+            let baseInternalCameraPos = new THREE.Vector3(0, 0.5, 2.5); // Use the same base as in initialLoad
+            let internalVector = baseInternalCameraPos.clone().sub(lookAtTargetInside);
+            cameraLookInsidePos.copy(lookAtTargetInside).add(internalVector.normalize().multiplyScalar(currentInitialDistance));
         });
     }
 
